@@ -1,0 +1,6 @@
+{
+  "name": "E-ENROLL",
+  "description": "K-12 Basic Education enrollment and learner management system for Kindergarten, Elementary, Junior High, and Senior High School learners, parents, and school administrators.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
