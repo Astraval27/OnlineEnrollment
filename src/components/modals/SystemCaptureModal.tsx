@@ -13,6 +13,8 @@ import {
   Copy,
 } from 'lucide-react';
 import { toPng } from 'html-to-image';
+import depedEnrollmentDeskImage from '../../assets/images/deped_enrollment_desk_1791879026220.jpg';
+import systemOverviewImage from '../../assets/images/system_overview_1789936634754.jpg';
 import systemShowcaseImage from '../../assets/images/system_showcase_capture_1789941510863.jpg';
 
 interface SystemCaptureModalProps {
@@ -28,7 +30,7 @@ export const SystemCaptureModal: React.FC<SystemCaptureModalProps> = ({
   targetElementId = 'root',
   currentScreenName = 'Active System View',
 }) => {
-  const [activeTab, setActiveTab] = useState<'showcase' | 'live'>('showcase');
+  const [activeTab, setActiveTab] = useState<'desk' | 'architecture' | 'showcase' | 'live'>('desk');
   const [capturedLiveImage, setCapturedLiveImage] = useState<string | null>(null);
   const [isCapturing, setIsCapturing] = useState(false);
   const [copied, setCopied] = useState(false);
@@ -113,14 +115,21 @@ export const SystemCaptureModal: React.FC<SystemCaptureModalProps> = ({
             {/* Download Button */}
             <button
               id="modal-download-capture-btn"
-              onClick={() =>
-                handleDownload(
-                  activeTab === 'live' && capturedLiveImage
-                    ? capturedLiveImage
-                    : systemShowcaseImage,
-                  activeTab === 'live' ? 'e-enroll-live-screen.png' : 'e-enroll-system-showcase.jpg'
-                )
-              }
+              onClick={() => {
+                let img = depedEnrollmentDeskImage;
+                let filename = 'deped-enrollment-admissions-desk.jpg';
+                if (activeTab === 'live' && capturedLiveImage) {
+                  img = capturedLiveImage;
+                  filename = 'e-enroll-live-screen.png';
+                } else if (activeTab === 'architecture') {
+                  img = systemOverviewImage;
+                  filename = 'e-enroll-system-architecture.jpg';
+                } else if (activeTab === 'showcase') {
+                  img = systemShowcaseImage;
+                  filename = 'e-enroll-system-showcase.jpg';
+                }
+                handleDownload(img, filename);
+              }}
               className="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-neutral-900 hover:bg-neutral-800 text-white text-xs font-bold rounded-lg transition-colors shadow-xs"
             >
               <Download className="w-3.5 h-3.5" />
@@ -141,6 +150,32 @@ export const SystemCaptureModal: React.FC<SystemCaptureModalProps> = ({
         <div className="px-6 py-3 bg-white border-b border-slate-200 flex flex-wrap items-center justify-between gap-3">
           <div className="inline-flex p-1 bg-slate-100 rounded-xl text-xs font-semibold text-neutral-600">
             <button
+              onClick={() => setActiveTab('desk')}
+              className={`px-3 py-1.5 rounded-lg transition-all text-xs font-bold flex items-center gap-1.5 ${
+                activeTab === 'desk'
+                  ? 'bg-white text-neutral-900 shadow-xs'
+                  : 'text-neutral-500 hover:text-neutral-900'
+              }`}
+            >
+              <img
+                src={systemShowcaseImage}
+                alt="Display tab icon"
+                className="w-3.5 h-3.5 rounded-full object-cover border border-slate-300 shadow-2xs"
+              />
+              <span>Admissions Desk</span>
+            </button>
+            <button
+              onClick={() => setActiveTab('architecture')}
+              className={`px-3 py-1.5 rounded-lg transition-all text-xs font-bold flex items-center gap-1.5 ${
+                activeTab === 'architecture'
+                  ? 'bg-white text-neutral-900 shadow-xs'
+                  : 'text-neutral-500 hover:text-neutral-900'
+              }`}
+            >
+              <Layers className="w-3.5 h-3.5" />
+              <span>Architecture</span>
+            </button>
+            <button
               onClick={() => setActiveTab('showcase')}
               className={`px-3 py-1.5 rounded-lg transition-all text-xs font-bold flex items-center gap-1.5 ${
                 activeTab === 'showcase'
@@ -148,8 +183,7 @@ export const SystemCaptureModal: React.FC<SystemCaptureModalProps> = ({
                   : 'text-neutral-500 hover:text-neutral-900'
               }`}
             >
-              <Layers className="w-3.5 h-3.5" />
-              <span>Whole System Showcase</span>
+              <span>System Showcase</span>
             </button>
             <button
               onClick={() => {
@@ -192,7 +226,45 @@ export const SystemCaptureModal: React.FC<SystemCaptureModalProps> = ({
 
         {/* Main Picture Viewport */}
         <div className="flex-1 overflow-y-auto p-6 bg-neutral-950 flex flex-col items-center justify-center min-h-[420px]">
-          {activeTab === 'showcase' ? (
+          {activeTab === 'desk' && (
+            <div className="relative w-full flex items-center justify-center group">
+              <img
+                src={depedEnrollmentDeskImage}
+                alt="DepEd E-Enroll Online Registration & Admissions Desk"
+                referrerPolicy="no-referrer"
+                className="max-w-full max-h-[60vh] object-contain rounded-xl shadow-2xl border border-neutral-800"
+              />
+              <div className="absolute bottom-4 inset-x-4 max-w-lg mx-auto bg-neutral-900/90 text-white backdrop-blur-md py-2 px-4 rounded-xl text-xs border border-neutral-700 flex items-center justify-between">
+                <span className="font-semibold text-neutral-200">
+                  DepEd Basic Education E-Enroll Online Registration & Admissions Desk (1376 × 768 px)
+                </span>
+                <span className="text-[10px] text-emerald-400 font-bold uppercase tracking-wider">
+                  Admissions Desk
+                </span>
+              </div>
+            </div>
+          )}
+
+          {activeTab === 'architecture' && (
+            <div className="relative w-full flex items-center justify-center group">
+              <img
+                src={systemOverviewImage}
+                alt="E-ENROLL Overview Display Capture"
+                referrerPolicy="no-referrer"
+                className="max-w-full max-h-[60vh] object-contain rounded-xl shadow-2xl border border-neutral-800"
+              />
+              <div className="absolute bottom-4 inset-x-4 max-w-lg mx-auto bg-neutral-900/90 text-white backdrop-blur-md py-2 px-4 rounded-xl text-xs border border-neutral-700 flex items-center justify-between">
+                <span className="font-semibold text-neutral-200">
+                  E-ENROLL Core Architecture, Workflow & System Operations (1376 × 768 px)
+                </span>
+                <span className="text-[10px] text-emerald-400 font-bold uppercase tracking-wider">
+                  Architecture
+                </span>
+              </div>
+            </div>
+          )}
+
+          {activeTab === 'showcase' && (
             <div className="relative w-full flex items-center justify-center group">
               <img
                 src={systemShowcaseImage}
@@ -209,7 +281,9 @@ export const SystemCaptureModal: React.FC<SystemCaptureModalProps> = ({
                 </span>
               </div>
             </div>
-          ) : (
+          )}
+
+          {activeTab === 'live' && (
             <div className="relative w-full flex items-center justify-center">
               {capturedLiveImage ? (
                 <img

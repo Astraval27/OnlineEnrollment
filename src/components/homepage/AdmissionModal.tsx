@@ -24,6 +24,11 @@ import {
   Mail,
   UserPlus,
   Clock,
+  Edit3,
+  Calendar,
+  AlertCircle,
+  HelpCircle,
+  BadgeCheck,
 } from 'lucide-react';
 import { Student } from '../../types';
 import {
@@ -38,6 +43,16 @@ import {
   SHS_TRACKS_AND_STRANDS,
   SchoolOpeningMonth,
 } from '../../utils/depedValidation';
+import {
+  formatPhilippineMobile,
+  isValidPhilippineMobile,
+  formatDateOfBirthMask,
+  isValidDateOfBirth,
+  formatLRNMask,
+  cleanLRN,
+  format4PsMask,
+  formatSchoolIdMask,
+} from '../../utils/inputMasking';
 import {
   queryLearnerByLRN,
   registerAdmissionAccount,
@@ -58,19 +73,21 @@ export const AdmissionModal: React.FC<AdmissionModalProps> = ({
   onEnrollmentComplete,
   initialPathway = 'new_student',
 }) => {
-  // Wizard Step:
+  // Wizard Steps:
   // 1 = Admission Pathway & Gatekeeper (New Student Age Check or Transferee LRN / Previous School)
   // 2 = DepEd Enhanced BEEF Intake
   // 3 = Credentials, Documents & Affidavit
-  // 4 = Integrated Parent/Guardian Account Creation (Required before submission)
-  // 5 = Post-Submission Hand-off & Verification
+  // 4 = Integrated Parent/Guardian Account Creation
+  // 5 = Comprehensive Review & Edit Screen (with single-click edit shortcuts)
+  // 6 = Post-Submission Hand-off & Verification Receipt
   const [currentStep, setCurrentStep] = useState(1);
-  const totalSteps = 4; // Step 5 is submission receipt
+  const totalSteps = 5; // Steps 1 to 5, step 6 is final receipt
+  const [cameFromReview, setCameFromReview] = useState(false);
 
   // --- STAGE 1: GATEWAY & PATHWAY SELECTION ---
   const [pathway, setPathway] = useState<'new_student' | 'transferee'>(initialPathway);
   const [tempReferenceId, setTempReferenceId] = useState<string>('');
-  const [lrn, setLrn] = useState('');
+  const [rawLrn, setRawLrn] = useState('');
   const [lrnQueryError, setLrnQueryError] = useState<string | null>(null);
   const [lrnAutoFilled, setLrnAutoFilled] = useState<boolean>(false);
   const [openingMonth, setOpeningMonth] = useState<SchoolOpeningMonth>('August');
@@ -86,7 +103,8 @@ export const AdmissionModal: React.FC<AdmissionModalProps> = ({
   const [lastName, setLastName] = useState('');
   const [extensionName, setExtensionName] = useState('');
   const [sex, setSex] = useState<'Male' | 'Female'>('Male');
-  const [birthDate, setBirthDate] = useState('2021-04-12'); // Defaults to age-eligible Kindergarten/Grade 1
+  const [birthDate, setBirthDate] = useState('2021-04-12'); // Defaults to age-eligible Kindergarten
+  const [dobError, setDobError] = useState<string | null>(null);
   const [motherTongue, setMotherTongue] = useState('Tagalog');
 
   // Socio-demographics
@@ -106,7 +124,7 @@ export const AdmissionModal: React.FC<AdmissionModalProps> = ({
 
   // Contact & Address
   const [currentAddress, setCurrentAddress] = useState('Metro Manila, Philippines');
-  const [contactNumber, setContactNumber] = useState('+63 917 555 0100');
+  const [contactNumber, setContactNumber] = useState('+63 917-555-0100');
 
   // --- STAGE 3: CREDENTIALS, DOCUMENTS & AFFIDAVIT ---
   const [hasPSABirthCert, setHasPSABirthCert] = useState(true);
@@ -120,11 +138,12 @@ export const AdmissionModal: React.FC<AdmissionModalProps> = ({
   const [parentName, setParentName] = useState('');
   const [parentEmail, setParentEmail] = useState('');
   const [parentMobile, setParentMobile] = useState('');
+  const [mobileError, setMobileError] = useState<string | null>(null);
   const [accountPassword, setAccountPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [privacyConsentAgreed, setPrivacyConsentAgreed] = useState(false);
 
-  // --- STAGE 5: POST-SUBMISSION STATE ---
+  // --- STAGE 6: POST-SUBMISSION STATE ---
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submissionResult, setSubmissionResult] = useState<any>(null);
 
@@ -151,9 +170,10 @@ export const AdmissionModal: React.FC<AdmissionModalProps> = ({
   if (!isOpen) return null;
 
   // LRN Lookup handler for Transferee pathway
+  const cleanLrnValue = cleanLRN(rawLrn);
   const handleQueryLRN = async () => {
     setLrnQueryError(null);
-    const res = await queryLearnerByLRN(lrn);
+    const res = await queryLearnerByLRN(cleanLrnValue);
     if (!res.success) {
       setLrnQueryError(res.message || 'Invalid LRN format');
       return;
@@ -168,14 +188,14 @@ export const AdmissionModal: React.FC<AdmissionModalProps> = ({
       if (d.birthDate) setBirthDate(d.birthDate);
       if (d.motherTongue) setMotherTongue(d.motherTongue);
       if (d.is4Ps !== undefined) setIs4Ps(d.is4Ps);
-      if (d.fourPsHouseholdId) setFourPsId(d.fourPsHouseholdId);
+      if (d.fourPsHouseholdId) setFourPsId(format4PsMask(d.fourPsHouseholdId));
       if (d.isIP !== undefined) setIsIP(d.isIP);
       if (d.ipGroupName) setIpGroup(d.ipGroupName);
       if (d.currentAddress) setCurrentAddress(d.currentAddress);
-      if (d.contactNumber) setContactNumber(d.contactNumber);
+      if (d.contactNumber) setContactNumber(formatPhilippineMobile(d.contactNumber));
       if (d.email) setParentEmail(d.email);
       if (d.parentGuardianName) setParentName(d.parentGuardianName);
-      if (d.parentGuardianContact) setParentMobile(d.parentGuardianContact);
+      if (d.parentGuardianContact) setParentMobile(formatPhilippineMobile(d.parentGuardianContact));
       if (d.previousSchoolName) setPrevSchoolName(d.previousSchoolName);
       if (d.previousSchoolId) setPrevSchoolId(d.previousSchoolId);
       if (d.lastSYCompleted) setLastSYCompleted(d.lastSYCompleted);
@@ -183,7 +203,7 @@ export const AdmissionModal: React.FC<AdmissionModalProps> = ({
       setLrnAutoFilled(true);
     } else {
       setLrnAutoFilled(false);
-      setLrnQueryError('LRN valid. No prior registry entry found; proceed with entry.');
+      setLrnQueryError('LRN valid. No prior registry entry found; proceed with manual entry.');
     }
   };
 
@@ -205,7 +225,7 @@ export const AdmissionModal: React.FC<AdmissionModalProps> = ({
   // Step 1 Validation
   const handleValidateStep1 = () => {
     if (pathway === 'transferee') {
-      const lrnValidation = validateLRN(lrn);
+      const lrnValidation = validateLRN(cleanLrnValue);
       if (!lrnValidation.isValid) {
         alert(lrnValidation.message);
         return false;
@@ -232,8 +252,9 @@ export const AdmissionModal: React.FC<AdmissionModalProps> = ({
       alert('Learner First Name and Last Name are required per DepEd BEEF.');
       return false;
     }
-    if (!birthDate) {
-      alert('Date of Birth is required.');
+    const dobCheck = isValidDateOfBirth(birthDate);
+    if (!dobCheck.isValid) {
+      alert(dobCheck.message);
       return false;
     }
     if (is4Ps && fourPsId && !validate4PsHouseholdId(fourPsId)) {
@@ -263,8 +284,8 @@ export const AdmissionModal: React.FC<AdmissionModalProps> = ({
       alert('A valid Parent/Guardian Email address is required for portal login and notices.');
       return false;
     }
-    if (!parentMobile.trim() || parentMobile.length < 10) {
-      alert('A valid Philippine Mobile Number is required for SMS verification notices.');
+    if (!parentMobile.trim() || !isValidPhilippineMobile(parentMobile)) {
+      alert('A valid Philippine Mobile Number (+63 9XX-XXX-XXXX) is required for official SMS alerts.');
       return false;
     }
     if (!accountPassword || accountPassword.length < 6) {
@@ -278,6 +299,12 @@ export const AdmissionModal: React.FC<AdmissionModalProps> = ({
     return true;
   };
 
+  // Jump to specific step from Review Screen
+  const handleJumpToStep = (stepNumber: number) => {
+    setCameFromReview(true);
+    setCurrentStep(stepNumber);
+  };
+
   const handleNextStep = () => {
     if (currentStep === 1) {
       if (!handleValidateStep1()) return;
@@ -285,8 +312,16 @@ export const AdmissionModal: React.FC<AdmissionModalProps> = ({
       if (!handleValidateStep2()) return;
     } else if (currentStep === 3) {
       if (!handleValidateStep3()) return;
+    } else if (currentStep === 4) {
+      if (!handleValidateStep4()) return;
     }
-    setCurrentStep((prev) => Math.min(totalSteps, prev + 1));
+
+    if (cameFromReview) {
+      setCurrentStep(5); // Return to review screen directly
+      setCameFromReview(false);
+    } else {
+      setCurrentStep((prev) => Math.min(totalSteps, prev + 1));
+    }
   };
 
   const handlePrevStep = () => {
@@ -294,8 +329,8 @@ export const AdmissionModal: React.FC<AdmissionModalProps> = ({
   };
 
   // Final Submission to POST /api/admission/register
-  const handleFinalSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleFinalSubmit = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
     if (!handleValidateStep4()) return;
 
     setIsSubmitting(true);
@@ -306,7 +341,7 @@ export const AdmissionModal: React.FC<AdmissionModalProps> = ({
         parentMobile,
         password: accountPassword,
         parentName,
-        lrn: pathway === 'transferee' ? lrn : undefined,
+        lrn: pathway === 'transferee' ? cleanLrnValue : undefined,
         tempReferenceId: pathway === 'new_student' ? tempReferenceId : undefined,
         firstName,
         middleName,
@@ -351,7 +386,7 @@ export const AdmissionModal: React.FC<AdmissionModalProps> = ({
       setSubmissionResult(result);
 
       if (result.success) {
-        setCurrentStep(5); // Show Post-Submission Hand-off view
+        setCurrentStep(6); // Step 6: Post-Submission Receipt & Direct Roadmap Hand-Off
       } else {
         alert(result.message || 'Submission failed. Please check form details.');
       }
@@ -370,8 +405,8 @@ export const AdmissionModal: React.FC<AdmissionModalProps> = ({
       id: submissionResult.learner?.id || `s_${Date.now()}`,
       name: `${firstName} ${lastName}`.trim(),
       email: parentEmail,
-      studentId: pathway === 'transferee' ? lrn : tempReferenceId,
-      lrn: pathway === 'transferee' ? lrn : undefined,
+      studentId: pathway === 'transferee' ? cleanLrnValue : tempReferenceId,
+      lrn: pathway === 'transferee' ? cleanLrnValue : undefined,
       gradeLevel,
       trackStrand: shsStrand || 'Academic',
       section: 'Section 1 (Assigned)',
@@ -394,7 +429,7 @@ export const AdmissionModal: React.FC<AdmissionModalProps> = ({
     onClose();
   };
 
-  const boundIdentifierDisplay = pathway === 'transferee' ? lrn || '12-Digit LRN' : tempReferenceId;
+  const boundIdentifierDisplay = pathway === 'transferee' ? (cleanLrnValue ? formatLRNMask(cleanLrnValue) : '12-Digit LRN') : tempReferenceId;
 
   return (
     <>
@@ -416,7 +451,13 @@ export const AdmissionModal: React.FC<AdmissionModalProps> = ({
                   </span>
                 </div>
                 <p className="text-[11px] text-neutral-500">
-                  Guest Intake & Real-Time Student Portal Enrollment Roadmap Hand-Off
+                  Step {currentStep} of {totalSteps}: {
+                    currentStep === 1 ? 'Admission Pathway & Identification' :
+                    currentStep === 2 ? 'DepEd BEEF Intake & Profile' :
+                    currentStep === 3 ? 'Credentials & SF9 Report Card' :
+                    currentStep === 4 ? 'Parent / Guardian Account Setup' :
+                    'Review & Verify Application Summary'
+                  }
                 </p>
               </div>
             </div>
@@ -429,23 +470,30 @@ export const AdmissionModal: React.FC<AdmissionModalProps> = ({
             </button>
           </div>
 
-          {/* Stepper Header (Steps 1 to 4) */}
-          {currentStep <= 4 && (
+          {/* Stepper Header (Steps 1 to 5) */}
+          {currentStep <= 5 && (
             <div className="px-6 py-3 bg-slate-50/80 border-b border-slate-200 flex items-center justify-between text-xs">
-              <div className="flex items-center gap-2 sm:gap-4 overflow-x-auto">
+              <div className="flex items-center gap-2 sm:gap-3 overflow-x-auto pr-2">
                 {[
-                  { step: 1, label: '1. Admission Gate' },
-                  { step: 2, label: '2. BEEF Intake' },
-                  { step: 3, label: '3. Credentials & SF9' },
-                  { step: 4, label: '4. Account Creation' },
+                  { step: 1, label: '1. Pathway' },
+                  { step: 2, label: '2. BEEF' },
+                  { step: 3, label: '3. Credentials' },
+                  { step: 4, label: '4. Account' },
+                  { step: 5, label: '5. Review & Edit' },
                 ].map((s) => (
-                  <div
+                  <button
                     key={s.step}
-                    className={`flex items-center gap-1.5 text-[11px] font-bold ${
+                    onClick={() => {
+                      // Allow jumping backward or directly to review if already reached
+                      if (s.step <= currentStep || currentStep === 5) {
+                        setCurrentStep(s.step);
+                      }
+                    }}
+                    className={`flex items-center gap-1.5 text-[11px] font-bold transition-colors ${
                       currentStep === s.step
                         ? 'text-neutral-900'
                         : currentStep > s.step
-                        ? 'text-emerald-700'
+                        ? 'text-emerald-700 hover:text-emerald-900 cursor-pointer'
                         : 'text-neutral-400'
                     }`}
                   >
@@ -461,12 +509,31 @@ export const AdmissionModal: React.FC<AdmissionModalProps> = ({
                       {currentStep > s.step ? '✓' : s.step}
                     </span>
                     <span className="whitespace-nowrap">{s.label}</span>
-                  </div>
+                  </button>
                 ))}
               </div>
-              <span className="text-[11px] font-bold text-neutral-400 hidden sm:inline">
+              <span className="text-[11px] font-bold text-neutral-400 hidden sm:inline shrink-0">
                 Step {currentStep} of {totalSteps}
               </span>
+            </div>
+          )}
+
+          {/* Return to Review Banner if in Edit Mode */}
+          {cameFromReview && currentStep < 5 && (
+            <div className="bg-amber-50 border-b border-amber-200 px-6 py-2.5 flex items-center justify-between text-xs text-amber-900">
+              <div className="flex items-center gap-2 font-medium">
+                <Edit3 className="w-3.5 h-3.5 text-amber-700" />
+                <span>Editing Section from Review Screen. Make changes and return anytime.</span>
+              </div>
+              <button
+                onClick={() => {
+                  setCurrentStep(5);
+                  setCameFromReview(false);
+                }}
+                className="px-3 py-1 bg-amber-900 hover:bg-amber-800 text-white rounded-md text-[11px] font-bold uppercase tracking-wider transition-colors"
+              >
+                Return to Review →
+              </button>
             </div>
           )}
 
@@ -478,9 +545,13 @@ export const AdmissionModal: React.FC<AdmissionModalProps> = ({
             {currentStep === 1 && (
               <div className="space-y-5 animate-in fade-in">
                 <div>
-                  <label className="text-[11px] font-bold uppercase tracking-wider text-neutral-500 block mb-2">
-                    Select Your Initial Pathway (DepEd DO No. 03, s. 2018)
-                  </label>
+                  <div className="flex items-center justify-between mb-2">
+                    <label className="text-[11px] font-bold uppercase tracking-wider text-neutral-500 block">
+                      Select Your Initial Pathway (DepEd DO No. 03, s. 2018)
+                    </label>
+                    <span className="text-[11px] text-neutral-400">Step 1 of 5</span>
+                  </div>
+
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                     {/* Pathway 1: New Student */}
                     <button
@@ -564,18 +635,33 @@ export const AdmissionModal: React.FC<AdmissionModalProps> = ({
                           <option value="Kindergarten">Kindergarten (Age 5 Cutoff)</option>
                           <option value="Grade 1">Grade 1 (Age 6 Cutoff)</option>
                         </select>
+                        <span className="text-[10px] text-neutral-400 mt-1 block">
+                          DO 20 s. 2018 benchmark grade level
+                        </span>
                       </div>
 
                       <div>
                         <label className="text-[11px] font-semibold text-neutral-600 block mb-1">
-                          Learner Date of Birth
+                          Date of Birth (YYYY-MM-DD) *
                         </label>
-                        <input
-                          type="date"
-                          value={birthDate}
-                          onChange={(e) => setBirthDate(e.target.value)}
-                          className="w-full p-2 border border-slate-300 rounded-lg text-xs bg-white"
-                        />
+                        <div className="relative">
+                          <input
+                            type="text"
+                            maxLength={10}
+                            placeholder="YYYY-MM-DD (e.g. 2021-04-12)"
+                            value={birthDate}
+                            onChange={(e) => {
+                              const masked = formatDateOfBirthMask(e.target.value);
+                              setBirthDate(masked);
+                              const check = isValidDateOfBirth(masked);
+                              setDobError(check.isValid ? null : check.message || null);
+                            }}
+                            className="w-full p-2 border border-slate-300 rounded-lg text-xs font-mono bg-white focus:border-neutral-900 outline-none"
+                          />
+                        </div>
+                        <span className="text-[10px] text-neutral-400 mt-1 block">
+                          Format: YYYY-MM-DD per PSA Certificate
+                        </span>
                       </div>
 
                       <div>
@@ -591,6 +677,9 @@ export const AdmissionModal: React.FC<AdmissionModalProps> = ({
                           <option value="July">July Opening</option>
                           <option value="June">June Opening</option>
                         </select>
+                        <span className="text-[10px] text-neutral-400 mt-1 block">
+                          Defines October 31 age-cutoff baseline
+                        </span>
                       </div>
                     </div>
 
@@ -630,29 +719,41 @@ export const AdmissionModal: React.FC<AdmissionModalProps> = ({
                       </span>
                     </div>
 
-                    {/* LRN Input & Query */}
+                    {/* LRN Input & Query with Dynamic Format Masking */}
                     <div>
-                      <label className="text-[11px] font-semibold text-neutral-600 block mb-1">
-                        12-Digit DepEd Learner Reference Number (LRN) *
-                      </label>
+                      <div className="flex items-center justify-between mb-1">
+                        <label className="text-[11px] font-semibold text-neutral-600 block">
+                          12-Digit DepEd Learner Reference Number (LRN) *
+                        </label>
+                        <span className="text-[10px] text-neutral-400 font-mono">
+                          {cleanLrnValue.length}/12 digits
+                        </span>
+                      </div>
                       <div className="flex gap-2">
                         <input
                           type="text"
-                          maxLength={12}
-                          placeholder="e.g. 108249000185 or 108249000214"
-                          value={lrn}
-                          onChange={(e) => setLrn(e.target.value.replace(/\D/g, ''))}
+                          maxLength={13} // 12 digits + 1 hyphen
+                          placeholder="e.g. 108249-000185 or 108249-000214"
+                          value={rawLrn}
+                          onChange={(e) => {
+                            const masked = formatLRNMask(e.target.value);
+                            setRawLrn(masked);
+                          }}
                           className="flex-1 p-2 border border-slate-300 rounded-lg text-xs font-mono font-bold bg-white focus:border-neutral-900 outline-none"
                         />
                         <button
                           type="button"
                           onClick={handleQueryLRN}
-                          className="px-4 py-2 bg-neutral-900 text-white rounded-lg text-xs font-bold hover:bg-neutral-800 flex items-center gap-1.5 uppercase tracking-wider"
+                          disabled={cleanLrnValue.length < 12}
+                          className="px-4 py-2 bg-neutral-900 disabled:bg-slate-300 text-white rounded-lg text-xs font-bold hover:bg-neutral-800 flex items-center gap-1.5 uppercase tracking-wider transition-colors"
                         >
                           <Search className="w-3.5 h-3.5" />
                           <span>Query LIS</span>
                         </button>
                       </div>
+                      <p className="text-[10px] text-neutral-400 mt-1">
+                        Dynamic format mask: XXXXXX-XXXXXX. Demo registered test accounts: <code>108249-000185</code> (Grade 11 STEM) or <code>108249-000214</code>.
+                      </p>
                       {lrnQueryError && (
                         <p className="text-[11px] text-amber-700 mt-1 font-medium">{lrnQueryError}</p>
                       )}
@@ -664,7 +765,7 @@ export const AdmissionModal: React.FC<AdmissionModalProps> = ({
                       )}
                     </div>
 
-                    {/* Previous School Details for SF10 Tracking */}
+                    {/* Previous School Details for SF10 Tracking with Masking */}
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1">
                       <div className="sm:col-span-2">
                         <label className="text-[11px] font-semibold text-neutral-600 block mb-1">
@@ -677,20 +778,31 @@ export const AdmissionModal: React.FC<AdmissionModalProps> = ({
                           onChange={(e) => setPrevSchoolName(e.target.value)}
                           className="w-full p-2 border border-slate-300 rounded-lg text-xs bg-white"
                         />
+                        <span className="text-[10px] text-neutral-400 mt-1 block">
+                          School of origin where permanent academic record (SF10) is currently archived
+                        </span>
                       </div>
 
                       <div>
-                        <label className="text-[11px] font-semibold text-neutral-600 block mb-1">
-                          DepEd School ID (6-Digits) *
-                        </label>
+                        <div className="flex items-center justify-between mb-1">
+                          <label className="text-[11px] font-semibold text-neutral-600 block">
+                            School ID (6 Digits) *
+                          </label>
+                          <span className="text-[10px] text-neutral-400 font-mono">
+                            {prevSchoolId.length}/6
+                          </span>
+                        </div>
                         <input
                           type="text"
                           maxLength={6}
-                          placeholder="e.g. 300481"
+                          placeholder="300481"
                           value={prevSchoolId}
-                          onChange={(e) => setPrevSchoolId(e.target.value.replace(/\D/g, ''))}
+                          onChange={(e) => setPrevSchoolId(formatSchoolIdMask(e.target.value))}
                           className="w-full p-2 border border-slate-300 rounded-lg text-xs font-mono bg-white"
                         />
+                        <span className="text-[10px] text-neutral-400 mt-1 block">
+                          Official 6-digit DepEd School ID
+                        </span>
                       </div>
                     </div>
                   </div>
@@ -704,12 +816,17 @@ export const AdmissionModal: React.FC<AdmissionModalProps> = ({
             {currentStep === 2 && (
               <div className="space-y-5 animate-in fade-in">
                 <div className="border-b border-slate-100 pb-2">
-                  <h3 className="text-sm font-bold text-neutral-900">
-                    DepEd Basic Education Enrollment Form (DO No. 03, s. 2018)
-                  </h3>
-                  <p className="text-neutral-500 text-xs">
-                    Demographic profile and socio-demographic indicators.
-                  </p>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h3 className="text-sm font-bold text-neutral-900">
+                        DepEd Basic Education Enrollment Form (DO No. 03, s. 2018)
+                      </h3>
+                      <p className="text-neutral-500 text-xs">
+                        Demographic profile and socio-demographic indicators with automated input masking.
+                      </p>
+                    </div>
+                    <span className="text-[11px] text-neutral-400">Step 2 of 5</span>
+                  </div>
                 </div>
 
                 {/* Name Fields */}
@@ -723,6 +840,7 @@ export const AdmissionModal: React.FC<AdmissionModalProps> = ({
                       placeholder="Johnny"
                       className="w-full p-2 border border-slate-300 rounded-lg text-xs bg-white"
                     />
+                    <span className="text-[10px] text-neutral-400 mt-1 block">Given name</span>
                   </div>
 
                   <div>
@@ -734,6 +852,7 @@ export const AdmissionModal: React.FC<AdmissionModalProps> = ({
                       placeholder="Mendoza"
                       className="w-full p-2 border border-slate-300 rounded-lg text-xs bg-white"
                     />
+                    <span className="text-[10px] text-neutral-400 mt-1 block">Maternal surname</span>
                   </div>
 
                   <div>
@@ -745,6 +864,7 @@ export const AdmissionModal: React.FC<AdmissionModalProps> = ({
                       placeholder="Tabulo"
                       className="w-full p-2 border border-slate-300 rounded-lg text-xs bg-white"
                     />
+                    <span className="text-[10px] text-neutral-400 mt-1 block">Paternal family name</span>
                   </div>
 
                   <div>
@@ -756,13 +876,14 @@ export const AdmissionModal: React.FC<AdmissionModalProps> = ({
                       placeholder="Jr., III"
                       className="w-full p-2 border border-slate-300 rounded-lg text-xs bg-white"
                     />
+                    <span className="text-[10px] text-neutral-400 mt-1 block">Optional suffix</span>
                   </div>
                 </div>
 
-                {/* Sex, DOB, Mother Tongue */}
+                {/* Sex, DOB Mask, Mother Tongue */}
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                   <div>
-                    <label className="text-[11px] font-semibold text-neutral-600 block mb-1">Sex</label>
+                    <label className="text-[11px] font-semibold text-neutral-600 block mb-1">Sex at Birth</label>
                     <div className="flex gap-2">
                       <button
                         type="button"
@@ -783,16 +904,36 @@ export const AdmissionModal: React.FC<AdmissionModalProps> = ({
                         Female
                       </button>
                     </div>
+                    <span className="text-[10px] text-neutral-400 mt-1 block">Per official PSA record</span>
                   </div>
 
+                  {/* DOB Input with Masking */}
                   <div>
-                    <label className="text-[11px] font-semibold text-neutral-600 block mb-1">Date of Birth</label>
+                    <label className="text-[11px] font-semibold text-neutral-600 block mb-1">
+                      Date of Birth (YYYY-MM-DD) *
+                    </label>
                     <input
-                      type="date"
+                      type="text"
+                      maxLength={10}
                       value={birthDate}
-                      onChange={(e) => setBirthDate(e.target.value)}
-                      className="w-full p-2 border border-slate-300 rounded-lg text-xs bg-white"
+                      onChange={(e) => {
+                        const masked = formatDateOfBirthMask(e.target.value);
+                        setBirthDate(masked);
+                        const check = isValidDateOfBirth(masked);
+                        setDobError(check.isValid ? null : check.message || null);
+                      }}
+                      placeholder="2010-08-15"
+                      className={`w-full p-2 border rounded-lg text-xs font-mono bg-white outline-none ${
+                        dobError ? 'border-rose-400 bg-rose-50/40' : 'border-slate-300 focus:border-neutral-900'
+                      }`}
                     />
+                    {dobError ? (
+                      <span className="text-[10px] text-rose-600 mt-1 block font-medium">{dobError}</span>
+                    ) : (
+                      <span className="text-[10px] text-neutral-400 mt-1 block">
+                        Format: YYYY-MM-DD (e.g. 2010-08-15)
+                      </span>
+                    )}
                   </div>
 
                   <div>
@@ -806,6 +947,7 @@ export const AdmissionModal: React.FC<AdmissionModalProps> = ({
                         <option key={mt} value={mt}>{mt}</option>
                       ))}
                     </select>
+                    <span className="text-[10px] text-neutral-400 mt-1 block">Learner primary native language</span>
                   </div>
                 </div>
 
@@ -832,6 +974,7 @@ export const AdmissionModal: React.FC<AdmissionModalProps> = ({
                       <option value="Grade 11">Grade 11 (Senior High)</option>
                       <option value="Grade 12">Grade 12 (Senior High)</option>
                     </select>
+                    <span className="text-[10px] text-neutral-400 mt-1 block">Key stage category</span>
                   </div>
 
                   {(gradeLevel.includes('Grade 11') || gradeLevel.includes('Grade 12')) && (
@@ -847,6 +990,7 @@ export const AdmissionModal: React.FC<AdmissionModalProps> = ({
                             <option key={t} value={t}>{t}</option>
                           ))}
                         </select>
+                        <span className="text-[10px] text-neutral-400 mt-1 block">DO 03, s. 2018 SHS Track</span>
                       </div>
 
                       <div>
@@ -860,14 +1004,32 @@ export const AdmissionModal: React.FC<AdmissionModalProps> = ({
                             <option key={s.code} value={s.code}>{s.code} - {s.title}</option>
                           ))}
                         </select>
+                        <span className="text-[10px] text-neutral-400 mt-1 block">Specialized course track</span>
                       </div>
                     </>
                   )}
                 </div>
 
-                {/* Socio-demographic Checkboxes (4Ps, IP, LSEN) */}
+                {/* Residential Address with Masking / Formatting */}
+                <div>
+                  <label className="text-[11px] font-semibold text-neutral-600 block mb-1">
+                    Complete Residential Address *
+                  </label>
+                  <input
+                    type="text"
+                    value={currentAddress}
+                    onChange={(e) => setCurrentAddress(e.target.value)}
+                    placeholder="House/Unit No., Street, Barangay, City/Municipality, Province"
+                    className="w-full p-2 border border-slate-300 rounded-lg text-xs bg-white"
+                  />
+                  <span className="text-[10px] text-neutral-400 mt-1 block">
+                    Protected under RA 10173 with AES-256 field-level storage encryption
+                  </span>
+                </div>
+
+                {/* Socio-demographic Checkboxes (4Ps with Masking, IP, LSEN) */}
                 <div className="p-3.5 rounded-xl border border-slate-200 bg-slate-50 space-y-3">
-                  <div className="flex items-center gap-6">
+                  <div className="flex flex-wrap items-center gap-6">
                     <label className="flex items-center gap-2 cursor-pointer">
                       <input
                         type="checkbox"
@@ -906,11 +1068,15 @@ export const AdmissionModal: React.FC<AdmissionModalProps> = ({
                       </label>
                       <input
                         type="text"
+                        maxLength={14}
                         placeholder="HH-1082-940185"
                         value={fourPsId}
-                        onChange={(e) => setFourPsId(e.target.value)}
+                        onChange={(e) => setFourPsId(format4PsMask(e.target.value))}
                         className="w-full max-w-sm p-2 border border-slate-300 rounded-lg text-xs bg-white font-mono"
                       />
+                      <span className="text-[10px] text-neutral-400 mt-1 block">
+                        Format: HH-XXXX-XXXXXX per DSWD 4Ps beneficiary database
+                      </span>
                     </div>
                   )}
                 </div>
@@ -923,12 +1089,17 @@ export const AdmissionModal: React.FC<AdmissionModalProps> = ({
             {currentStep === 3 && (
               <div className="space-y-5 animate-in fade-in">
                 <div className="border-b border-slate-100 pb-2">
-                  <h3 className="text-sm font-bold text-neutral-900">
-                    Mandatory Credentials & DepEd Order No. 03, s. 2018
-                  </h3>
-                  <p className="text-neutral-500 text-xs">
-                    Upload digital copies of PSA Birth Certificate and Form 138 (SF9). If physical copies are delayed from your origin school, you may execute an electronic Affidavit of Undertaking.
-                  </p>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h3 className="text-sm font-bold text-neutral-900">
+                        Mandatory Credentials & DepEd Order No. 03, s. 2018
+                      </h3>
+                      <p className="text-neutral-500 text-xs">
+                        Upload digital copies of PSA Birth Certificate and Form 138 (SF9). If physical copies are delayed from your origin school, you may execute an electronic Affidavit of Undertaking.
+                      </p>
+                    </div>
+                    <span className="text-[11px] text-neutral-400">Step 3 of 5</span>
+                  </div>
                 </div>
 
                 {/* Form 138 / SF9 Report Card Upload */}
@@ -1071,12 +1242,12 @@ export const AdmissionModal: React.FC<AdmissionModalProps> = ({
                   </div>
                 </div>
 
-                {/* Account Fields Grid */}
+                {/* Account Fields Grid with Masking */}
                 <div className="space-y-4">
                   {/* Parent Full Name */}
                   <div>
                     <label className="text-[11px] font-bold text-neutral-700 uppercase tracking-wider block mb-1">
-                      Parent / Guardian Full Name *
+                      Parent / Guardian Full Legal Name *
                     </label>
                     <input
                       type="text"
@@ -1085,6 +1256,9 @@ export const AdmissionModal: React.FC<AdmissionModalProps> = ({
                       onChange={(e) => setParentName(e.target.value)}
                       className="w-full p-2.5 border border-slate-300 rounded-lg text-xs bg-white focus:border-neutral-900 outline-none"
                     />
+                    <span className="text-[10px] text-neutral-400 mt-1 block">
+                      Name of parent, primary guardian, or legal custodian
+                    </span>
                   </div>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -1101,25 +1275,40 @@ export const AdmissionModal: React.FC<AdmissionModalProps> = ({
                         className="w-full p-2.5 border border-slate-300 rounded-lg text-xs bg-white focus:border-neutral-900 outline-none"
                       />
                       <span className="text-[10px] text-neutral-400 mt-1 block">
-                        Used as your portal account username and for official communications.
+                        Used as your portal account username and for official email receipts.
                       </span>
                     </div>
 
-                    {/* Mobile Number */}
+                    {/* Mobile Number with Dynamic Format Mask */}
                     <div>
                       <label className="text-[11px] font-bold text-neutral-700 uppercase tracking-wider block mb-1">
-                        Mobile Number (+63 9XX XXX XXXX) *
+                        Mobile Phone Number (+63 9XX-XXX-XXXX) *
                       </label>
                       <input
                         type="tel"
-                        placeholder="+63 917 555 0199"
+                        maxLength={16}
+                        placeholder="+63 917-555-0199"
                         value={parentMobile}
-                        onChange={(e) => setParentMobile(e.target.value)}
-                        className="w-full p-2.5 border border-slate-300 rounded-lg text-xs font-mono bg-white focus:border-neutral-900 outline-none"
+                        onChange={(e) => {
+                          const masked = formatPhilippineMobile(e.target.value);
+                          setParentMobile(masked);
+                          if (masked && !isValidPhilippineMobile(masked)) {
+                            setMobileError('Please enter a complete 10-digit Philippine mobile number (+63 9XX-XXX-XXXX)');
+                          } else {
+                            setMobileError(null);
+                          }
+                        }}
+                        className={`w-full p-2.5 border rounded-lg text-xs font-mono bg-white outline-none ${
+                          mobileError ? 'border-rose-400 bg-rose-50/40' : 'border-slate-300 focus:border-neutral-900'
+                        }`}
                       />
-                      <span className="text-[10px] text-neutral-400 mt-1 block">
-                        SMS admission dispatch, OTP verification, and advisory alerts.
-                      </span>
+                      {mobileError ? (
+                        <span className="text-[10px] text-rose-600 mt-1 block font-medium">{mobileError}</span>
+                      ) : (
+                        <span className="text-[10px] text-neutral-400 mt-1 block">
+                          Dynamic format: +63 9XX-XXX-XXXX. Used for SMS OTP and enrollment dispatches.
+                        </span>
+                      )}
                     </div>
                   </div>
 
@@ -1145,6 +1334,9 @@ export const AdmissionModal: React.FC<AdmissionModalProps> = ({
                           {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                         </button>
                       </div>
+                      <span className="text-[10px] text-neutral-400 mt-1 block">
+                        Minimum 6 characters. Stores with secure bcrypt hashing simulation.
+                      </span>
                     </div>
 
                     {/* Bound Identifier Confirmation */}
@@ -1160,6 +1352,9 @@ export const AdmissionModal: React.FC<AdmissionModalProps> = ({
                           Locked to Profile
                         </span>
                       </div>
+                      <span className="text-[10px] text-neutral-400 mt-1 block">
+                        Permanently associates this guardian account with the learner record
+                      </span>
                     </div>
                   </div>
 
@@ -1182,9 +1377,289 @@ export const AdmissionModal: React.FC<AdmissionModalProps> = ({
             )}
 
             {/* ========================================================= */}
-            {/* STEP 5: POST-SUBMISSION RECEIPT & LIVE HAND-OFF           */}
+            {/* STEP 5: COMPREHENSIVE REVIEW & EDIT SCREEN               */}
             {/* ========================================================= */}
-            {currentStep === 5 && submissionResult && (
+            {currentStep === 5 && (
+              <div className="space-y-5 animate-in fade-in">
+                {/* Header with Instructions */}
+                <div className="border-b border-slate-100 pb-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                  <div>
+                    <h3 className="text-base font-extrabold text-neutral-900 tracking-tight flex items-center gap-2">
+                      <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                      <span>Review & Edit Application Summary</span>
+                    </h3>
+                    <p className="text-neutral-500 text-xs mt-0.5">
+                      Carefully verify all details before submitting. Click <strong className="text-neutral-800">Edit Section</strong> on any card to make instant adjustments.
+                    </p>
+                  </div>
+                  <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-neutral-900 text-white uppercase self-start sm:self-auto">
+                    Final Verification Step
+                  </span>
+                </div>
+
+                {/* 4 Clean Summary Cards with Single-Click Edit Shortcuts */}
+                <div className="space-y-4">
+                  {/* SUMMARY CARD 1: ADMISSION PATHWAY & IDENTIFICATION */}
+                  <div className="border border-slate-200 rounded-xl p-4.5 bg-white shadow-2xs hover:border-slate-300 transition-colors space-y-3">
+                    <div className="flex items-center justify-between pb-2 border-b border-slate-100">
+                      <div className="flex items-center gap-2">
+                        <GraduationCap className="w-4 h-4 text-neutral-800" />
+                        <h4 className="text-xs font-bold text-neutral-900 uppercase tracking-wider">
+                          Section 1: Admission Pathway & Identification
+                        </h4>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => handleJumpToStep(1)}
+                        className="px-3 py-1 text-xs font-bold text-neutral-800 hover:text-neutral-900 hover:bg-slate-100 rounded-md border border-slate-200 flex items-center gap-1.5 transition-colors uppercase tracking-wider"
+                      >
+                        <Edit3 className="w-3 h-3 text-neutral-700" />
+                        <span>Edit Section</span>
+                      </button>
+                    </div>
+
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
+                      <div>
+                        <span className="text-[10px] font-semibold text-neutral-400 uppercase block">Pathway</span>
+                        <strong className="text-neutral-900">
+                          {pathway === 'new_student' ? 'New Student (No LRN)' : 'Transferee / Balik-Aral'}
+                        </strong>
+                      </div>
+
+                      <div>
+                        <span className="text-[10px] font-semibold text-neutral-400 uppercase block">Identifier</span>
+                        <strong className="font-mono text-neutral-900 bg-slate-100 px-1.5 py-0.5 rounded">
+                          {boundIdentifierDisplay}
+                        </strong>
+                      </div>
+
+                      <div>
+                        <span className="text-[10px] font-semibold text-neutral-400 uppercase block">Grade & Track</span>
+                        <strong className="text-neutral-900">
+                          {gradeLevel} {shsStrand && gradeLevel.includes('Grade 11') ? `(${shsStrand})` : ''}
+                        </strong>
+                      </div>
+
+                      <div>
+                        <span className="text-[10px] font-semibold text-neutral-400 uppercase block">School Year</span>
+                        <strong className="text-neutral-900">SY 2026-2027 ({openingMonth})</strong>
+                      </div>
+                    </div>
+
+                    {pathway === 'transferee' && prevSchoolName && (
+                      <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-xs text-neutral-600">
+                        <span>
+                          <strong>Origin School:</strong> {prevSchoolName} (School ID: <code className="font-mono">{prevSchoolId || '300481'}</code>)
+                        </span>
+                        <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-blue-50 text-blue-800">
+                          SF10 Electronic Tracking Active
+                        </span>
+                      </div>
+                    )}
+
+                    {pathway === 'new_student' && kinderEvaluation && (
+                      <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-xs text-neutral-600">
+                        <span>
+                          <strong>Age Status:</strong> {kinderEvaluation.policyNotice}
+                        </span>
+                        <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-50 text-emerald-800">
+                          {kinderEvaluation.status}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* SUMMARY CARD 2: LEARNER DEMOGRAPHIC & BEEF PROFILE */}
+                  <div className="border border-slate-200 rounded-xl p-4.5 bg-white shadow-2xs hover:border-slate-300 transition-colors space-y-3">
+                    <div className="flex items-center justify-between pb-2 border-b border-slate-100">
+                      <div className="flex items-center gap-2">
+                        <Users className="w-4 h-4 text-neutral-800" />
+                        <h4 className="text-xs font-bold text-neutral-900 uppercase tracking-wider">
+                          Section 2: Learner Demographic & BEEF Profile
+                        </h4>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => handleJumpToStep(2)}
+                        className="px-3 py-1 text-xs font-bold text-neutral-800 hover:text-neutral-900 hover:bg-slate-100 rounded-md border border-slate-200 flex items-center gap-1.5 transition-colors uppercase tracking-wider"
+                      >
+                        <Edit3 className="w-3 h-3 text-neutral-700" />
+                        <span>Edit Section</span>
+                      </button>
+                    </div>
+
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
+                      <div>
+                        <span className="text-[10px] font-semibold text-neutral-400 uppercase block">Full Legal Name</span>
+                        <strong className="text-neutral-900">
+                          {firstName} {middleName} {lastName} {extensionName}
+                        </strong>
+                      </div>
+
+                      <div>
+                        <span className="text-[10px] font-semibold text-neutral-400 uppercase block">Sex</span>
+                        <strong className="text-neutral-900">{sex}</strong>
+                      </div>
+
+                      <div>
+                        <span className="text-[10px] font-semibold text-neutral-400 uppercase block">Date of Birth</span>
+                        <strong className="font-mono text-neutral-900">{birthDate}</strong>
+                      </div>
+
+                      <div>
+                        <span className="text-[10px] font-semibold text-neutral-400 uppercase block">Mother Tongue</span>
+                        <strong className="text-neutral-900">{motherTongue}</strong>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 border-t border-slate-100 text-xs">
+                      <div>
+                        <span className="text-[10px] font-semibold text-neutral-400 uppercase block">Residential Address</span>
+                        <span className="text-neutral-700">{currentAddress}</span>
+                      </div>
+                      <div>
+                        <span className="text-[10px] font-semibold text-neutral-400 uppercase block">Socio-Demographic Clusters</span>
+                        <span className="text-neutral-700">
+                          {is4Ps ? `4Ps Beneficiary (${fourPsId || 'Pending ID'})` : 'Non-4Ps'} • {isIP ? `IP: ${ipGroup}` : 'Non-IP'} • {isLSEN ? 'Special Needs Tagged' : 'General Education'}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* SUMMARY CARD 3: ACADEMIC CREDENTIALS & UNDERTAKING */}
+                  <div className="border border-slate-200 rounded-xl p-4.5 bg-white shadow-2xs hover:border-slate-300 transition-colors space-y-3">
+                    <div className="flex items-center justify-between pb-2 border-b border-slate-100">
+                      <div className="flex items-center gap-2">
+                        <FileText className="w-4 h-4 text-neutral-800" />
+                        <h4 className="text-xs font-bold text-neutral-900 uppercase tracking-wider">
+                          Section 3: Credentials & DepEd Order No. 03, s. 2018
+                        </h4>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => handleJumpToStep(3)}
+                        className="px-3 py-1 text-xs font-bold text-neutral-800 hover:text-neutral-900 hover:bg-slate-100 rounded-md border border-slate-200 flex items-center gap-1.5 transition-colors uppercase tracking-wider"
+                      >
+                        <Edit3 className="w-3 h-3 text-neutral-700" />
+                        <span>Edit Section</span>
+                      </button>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
+                      <div>
+                        <span className="text-[10px] font-semibold text-neutral-400 uppercase block">Form 138 / SF9 Report Card</span>
+                        <div className="flex items-center gap-1.5 mt-0.5">
+                          {sf9FileName ? (
+                            <span className="text-emerald-700 font-semibold flex items-center gap-1">
+                              <Check className="w-3.5 h-3.5" />
+                              <span className="truncate">{sf9FileName}</span>
+                            </span>
+                          ) : (
+                            <span className="text-amber-800 font-semibold flex items-center gap-1">
+                              <AlertCircle className="w-3.5 h-3.5" />
+                              <span>Missing — Covered by Undertaking</span>
+                            </span>
+                          )}
+                        </div>
+                      </div>
+
+                      <div>
+                        <span className="text-[10px] font-semibold text-neutral-400 uppercase block">PSA Birth Certificate</span>
+                        <div className="flex items-center gap-1.5 mt-0.5">
+                          {hasPSABirthCert ? (
+                            <span className="text-emerald-700 font-semibold flex items-center gap-1">
+                              <Check className="w-3.5 h-3.5" />
+                              <span>{psaFileName || 'Verified Available'}</span>
+                            </span>
+                          ) : (
+                            <span className="text-amber-800 font-semibold flex items-center gap-1">
+                              <AlertCircle className="w-3.5 h-3.5" />
+                              <span>Missing — Covered by Undertaking</span>
+                            </span>
+                          )}
+                        </div>
+                      </div>
+
+                      <div>
+                        <span className="text-[10px] font-semibold text-neutral-400 uppercase block">Admission Type</span>
+                        <span className={`inline-flex px-2 py-0.5 rounded text-[10px] font-bold uppercase mt-0.5 ${
+                          !hasSF9ReportCard || !hasPSABirthCert || !sf9FileName
+                            ? 'bg-amber-100 text-amber-900'
+                            : 'bg-emerald-100 text-emerald-900'
+                        }`}>
+                          {!hasSF9ReportCard || !hasPSABirthCert || !sf9FileName
+                            ? 'Temporary Enrollment (DO 03, s. 2018)'
+                            : 'Verified Complete'}
+                        </span>
+                      </div>
+                    </div>
+
+                    {(!hasSF9ReportCard || !hasPSABirthCert || !sf9FileName) && (
+                      <div className="p-2.5 rounded-lg bg-amber-50 border border-amber-200 text-xs text-amber-900 flex items-center justify-between">
+                        <span>
+                          <strong>Affidavit of Undertaking:</strong> {affidavitPayload ? 'Digitally Signed by Parent' : 'Execution will be prompted upon submit'}
+                        </span>
+                        <span className="font-semibold text-[11px]">
+                          Deadline: October 31, 2026
+                        </span>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* SUMMARY CARD 4: PARENT / GUARDIAN PORTAL ACCOUNT */}
+                  <div className="border border-slate-200 rounded-xl p-4.5 bg-white shadow-2xs hover:border-slate-300 transition-colors space-y-3">
+                    <div className="flex items-center justify-between pb-2 border-b border-slate-100">
+                      <div className="flex items-center gap-2">
+                        <Lock className="w-4 h-4 text-neutral-800" />
+                        <h4 className="text-xs font-bold text-neutral-900 uppercase tracking-wider">
+                          Section 4: Parent / Guardian Account & Privacy Consent
+                        </h4>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => handleJumpToStep(4)}
+                        className="px-3 py-1 text-xs font-bold text-neutral-800 hover:text-neutral-900 hover:bg-slate-100 rounded-md border border-slate-200 flex items-center gap-1.5 transition-colors uppercase tracking-wider"
+                      >
+                        <Edit3 className="w-3 h-3 text-neutral-700" />
+                        <span>Edit Section</span>
+                      </button>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
+                      <div>
+                        <span className="text-[10px] font-semibold text-neutral-400 uppercase block">Parent/Guardian Full Name</span>
+                        <strong className="text-neutral-900">{parentName || 'Parent / Legal Guardian'}</strong>
+                      </div>
+
+                      <div>
+                        <span className="text-[10px] font-semibold text-neutral-400 uppercase block">Portal Username (Email)</span>
+                        <strong className="font-mono text-neutral-900">{parentEmail}</strong>
+                      </div>
+
+                      <div>
+                        <span className="text-[10px] font-semibold text-neutral-400 uppercase block">Mobile Alert Number</span>
+                        <strong className="font-mono text-neutral-900">{parentMobile}</strong>
+                      </div>
+                    </div>
+
+                    <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-xs text-neutral-600">
+                      <span className="flex items-center gap-1.5 text-emerald-700 font-semibold">
+                        <BadgeCheck className="w-4 h-4 text-emerald-600" />
+                        <span>Data Privacy Act of 2012 (RA 10173) Explicit Consent Granted</span>
+                      </span>
+                      <span className="text-[10px] text-neutral-400">
+                        Auto-login token generated upon submit
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* ========================================================= */}
+            {/* STEP 6: POST-SUBMISSION RECEIPT & LIVE HAND-OFF           */}
+            {/* ========================================================= */}
+            {currentStep === 6 && submissionResult && (
               <div className="space-y-5 animate-in zoom-in-95 py-2">
                 <div className="text-center space-y-2">
                   <div className="w-14 h-14 rounded-2xl bg-emerald-600 text-white mx-auto flex items-center justify-center shadow-lg">
@@ -1247,8 +1722,8 @@ export const AdmissionModal: React.FC<AdmissionModalProps> = ({
             )}
           </div>
 
-          {/* Footer Controls (Steps 1 to 4) */}
-          {currentStep <= 4 && (
+          {/* Footer Controls (Steps 1 to 5) */}
+          {currentStep <= 5 && (
             <div className="px-6 py-4 bg-slate-50 border-t border-slate-200 flex items-center justify-between shrink-0">
               <button
                 type="button"
@@ -1260,23 +1735,24 @@ export const AdmissionModal: React.FC<AdmissionModalProps> = ({
                 <span>Previous</span>
               </button>
 
-              {currentStep < 4 ? (
+              {currentStep < 5 ? (
                 <button
                   type="button"
                   onClick={handleNextStep}
                   className="px-5 py-2 bg-neutral-900 hover:bg-neutral-800 text-white rounded-lg text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 transition-colors shadow-xs"
                 >
-                  <span>Continue</span>
+                  <span>{currentStep === 4 ? 'Review Application →' : 'Continue'}</span>
                   <ArrowRight className="w-3.5 h-3.5" />
                 </button>
               ) : (
+                /* Step 5: Final Review & Confirmation Submit */
                 <button
                   type="button"
                   onClick={handleFinalSubmit}
                   disabled={isSubmitting}
-                  className="px-6 py-2 bg-neutral-900 hover:bg-neutral-800 text-white rounded-lg text-xs font-bold uppercase tracking-wider flex items-center gap-2 transition-all shadow-xs"
+                  className="px-6 py-2.5 bg-neutral-900 hover:bg-neutral-800 text-white rounded-lg text-xs font-bold uppercase tracking-wider flex items-center gap-2 transition-all shadow-md hover:shadow-lg"
                 >
-                  <span>{isSubmitting ? 'Registering Account...' : 'Complete Admission & Create Account'}</span>
+                  <span>{isSubmitting ? 'Submitting & Provisioning Account...' : 'Confirm & Submit Application'}</span>
                   <ArrowRight className="w-4 h-4" />
                 </button>
               )}

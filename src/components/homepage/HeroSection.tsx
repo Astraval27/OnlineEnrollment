@@ -5,17 +5,13 @@ import {
   Sparkles,
   Clock,
   Lock,
-  Image as ImageIcon,
-  Upload,
-  X,
   Maximize2,
-  Download,
-  RotateCcw,
   FileText,
   ShieldCheck,
-  LayoutTemplate,
   Camera,
 } from 'lucide-react';
+import depedEnrollmentDeskImage from '../../assets/images/deped_enrollment_desk_1791879026220.jpg';
+import systemOverviewImage from '../../assets/images/system_overview_1789936634754.jpg';
 import systemShowcaseImage from '../../assets/images/system_showcase_capture_1789941510863.jpg';
 import { SystemCaptureModal } from '../modals/SystemCaptureModal';
 
@@ -30,28 +26,9 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
   onOpenLogin,
   onScrollToSection,
 }) => {
-  // View mode defaults to 'system' (Whole System Captured Picture) as requested
-  const [viewMode, setViewMode] = useState<'system' | 'card' | 'blank'>('system');
-  const [photoUrl, setPhotoUrl] = useState<string | null>(null);
+  // View mode defaults to 'display' showing the DepEd admissions desk photo on the frame
+  const [viewMode, setViewMode] = useState<'display' | 'card' | 'system'>('display');
   const [isModalOpen, setIsModalOpen] = useState(false);
-
-  const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const url = URL.createObjectURL(file);
-      setPhotoUrl(url);
-      setViewMode('blank');
-    }
-  };
-
-  const handleDownloadPicture = () => {
-    const link = document.createElement('a');
-    link.href = photoUrl || systemShowcaseImage;
-    link.download = 'e-enroll-system-picture.jpg';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  };
 
   return (
     <section id="home" className="pt-12 pb-20 bg-gradient-to-b from-white to-slate-50 border-b border-slate-200">
@@ -125,15 +102,21 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
             <div className="flex items-center justify-between px-1">
               <div className="inline-flex p-1 bg-slate-200/80 rounded-xl text-xs font-semibold text-neutral-600">
                 <button
-                  id="tab-blank-photo"
-                  onClick={() => setViewMode('blank')}
-                  className={`px-3 py-1.5 rounded-lg transition-all text-[11px] font-bold uppercase tracking-wider ${
-                    viewMode === 'blank'
+                  id="tab-display"
+                  onClick={() => setViewMode('display')}
+                  className={`px-3 py-1.5 rounded-lg transition-all text-[11px] font-bold uppercase tracking-wider flex items-center gap-2 ${
+                    viewMode === 'display'
                       ? 'bg-white text-neutral-900 shadow-xs'
                       : 'text-neutral-500 hover:text-neutral-900'
                   }`}
+                  title="Interactive System Display"
                 >
-                  Blank Photo
+                  <img
+                    src={systemShowcaseImage}
+                    alt="Display Icon"
+                    className="w-4 h-4 rounded-full object-cover border border-slate-300 shadow-2xs shrink-0"
+                  />
+                  <span>DISPLAY</span>
                 </button>
                 <button
                   id="tab-original-card"
@@ -158,66 +141,64 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
                   System Picture
                 </button>
               </div>
-
-              {viewMode === 'blank' && photoUrl && (
-                <button
-                  onClick={() => setPhotoUrl(null)}
-                  className="text-[11px] font-bold text-neutral-500 hover:text-red-600 transition-colors uppercase tracking-wider"
-                >
-                  Clear Photo
-                </button>
-              )}
             </div>
 
-            {/* VIEW 1: BLANK PHOTO FRAME */}
-            {viewMode === 'blank' && (
+            {/* VIEW 1: DISPLAY PHOTO FRAME (DEPED ENROLLMENT DESK PHOTO) */}
+            {viewMode === 'display' && (
               <div
-                id="hero-blank-photo"
-                className="relative w-full min-h-[420px] bg-slate-100/90 border-2 border-dashed border-slate-300 rounded-2xl flex flex-col items-center justify-center p-8 text-center transition-all hover:bg-slate-100/60 shadow-xs overflow-hidden"
+                id="hero-display-frame"
+                className="relative w-full min-h-[420px] bg-slate-900 rounded-2xl overflow-hidden shadow-xl flex flex-col group border border-slate-200"
               >
-                {photoUrl ? (
-                  <div className="relative w-full h-[390px] flex items-center justify-center group">
-                    <img
-                      src={photoUrl}
-                      alt="Uploaded preview"
-                      referrerPolicy="no-referrer"
-                      className="w-full h-full object-cover rounded-xl shadow-inner"
-                    />
+                <div className="relative w-full h-[375px] sm:h-[390px] flex items-center justify-center p-2 bg-neutral-950">
+                  <img
+                    src={depedEnrollmentDeskImage}
+                    alt="DepEd E-Enroll Online Registration & Admissions Desk"
+                    referrerPolicy="no-referrer"
+                    className="w-full h-full object-cover rounded-xl cursor-pointer transition-transform duration-300 hover:scale-[1.01]"
+                    onClick={() => setIsModalOpen(true)}
+                  />
+
+                  {/* Top-Right Quick Action: Fullscreen Only */}
+                  <div className="absolute top-4 right-4 flex items-center">
                     <button
-                      onClick={() => setPhotoUrl(null)}
-                      className="absolute top-3 right-3 p-1.5 bg-neutral-900/80 hover:bg-neutral-900 text-white rounded-lg backdrop-blur-xs transition-colors shadow-sm"
-                      title="Remove Photo"
+                      onClick={() => setIsModalOpen(true)}
+                      className="p-1.5 bg-neutral-900/80 hover:bg-neutral-900 text-white rounded-lg backdrop-blur-xs transition-colors shadow-sm"
+                      title="View Fullscreen"
                     >
-                      <X className="w-4 h-4" />
+                      <Maximize2 className="w-4 h-4" />
                     </button>
                   </div>
-                ) : (
-                  <div className="flex flex-col items-center justify-center space-y-4">
-                    <div className="w-20 h-20 rounded-2xl bg-white border border-slate-200 shadow-xs flex items-center justify-center text-neutral-400">
-                      <ImageIcon className="w-10 h-10 stroke-[1.25]" />
-                    </div>
 
-                    <div className="space-y-1">
-                      <span className="text-xs font-bold uppercase tracking-wider text-neutral-600 block">
-                        Blank Photo Frame
-                      </span>
-                      <p className="text-[11px] text-neutral-400 max-w-xs">
-                        This area is blank by default. You can leave it empty or upload a photo.
-                      </p>
-                    </div>
-
-                    <label className="cursor-pointer inline-flex items-center gap-1.5 px-4 py-2 bg-white border border-slate-300 hover:border-neutral-900 rounded-lg text-xs font-bold text-neutral-700 shadow-2xs transition-all uppercase tracking-wider">
-                      <Upload className="w-3.5 h-3.5" />
-                      <span>Upload Photo</span>
-                      <input
-                        type="file"
-                        accept="image/*"
-                        className="hidden"
-                        onChange={handlePhotoUpload}
-                      />
-                    </label>
+                  {/* Bottom-left badge with SECOND PHOTO replacing the icon */}
+                  <div className="absolute bottom-3 left-3 bg-neutral-900/90 text-white backdrop-blur-xs py-1.5 px-3 rounded-lg text-[10px] font-bold uppercase tracking-wider border border-neutral-700 flex items-center gap-2 shadow-sm">
+                    <img
+                      src={systemShowcaseImage}
+                      alt="System Icon"
+                      className="w-4 h-4 rounded-full object-cover border border-emerald-400 shrink-0"
+                    />
+                    <span className="text-neutral-100 font-semibold">DepEd Admissions Desk • 1376 × 768 px (16:9)</span>
                   </div>
-                )}
+                </div>
+
+                {/* Sub-bar below image */}
+                <div className="px-4 py-2.5 bg-neutral-900 text-white flex items-center justify-between text-xs border-t border-neutral-800">
+                  <div className="flex items-center gap-2">
+                    <img
+                      src={systemShowcaseImage}
+                      alt="Thumbnail icon"
+                      className="w-4 h-4 rounded-full object-cover border border-slate-500"
+                    />
+                    <span className="font-semibold text-neutral-200 text-[11px] sm:text-xs">
+                      DepEd Basic Education E-Enroll Online Registration & Admissions Desk
+                    </span>
+                  </div>
+                  <button
+                    onClick={() => setIsModalOpen(true)}
+                    className="text-[10px] uppercase font-bold text-neutral-400 hover:text-white transition-colors"
+                  >
+                    Click to enlarge →
+                  </button>
+                </div>
               </div>
             )}
 
@@ -310,20 +291,13 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
                     className="w-full h-full object-cover rounded-xl cursor-pointer transition-transform duration-300 hover:scale-[1.01]"
                     onClick={() => setIsModalOpen(true)}
                   />
-                  <div className="absolute top-4 right-4 flex items-center gap-2">
+                  <div className="absolute top-4 right-4 flex items-center">
                     <button
                       onClick={() => setIsModalOpen(true)}
                       className="p-1.5 bg-neutral-900/80 hover:bg-neutral-900 text-white rounded-lg backdrop-blur-xs transition-colors shadow-sm"
                       title="View Full Resolution & Live Snapshot"
                     >
                       <Maximize2 className="w-4 h-4" />
-                    </button>
-                    <button
-                      onClick={handleDownloadPicture}
-                      className="p-1.5 bg-neutral-900/80 hover:bg-neutral-900 text-white rounded-lg backdrop-blur-xs transition-colors shadow-sm"
-                      title="Download Picture"
-                    >
-                      <Download className="w-4 h-4" />
                     </button>
                   </div>
                   <div className="absolute bottom-3 left-3 bg-neutral-900/85 text-white backdrop-blur-xs py-1 px-2.5 rounded-lg text-[10px] font-bold uppercase tracking-wider border border-neutral-700 flex items-center gap-1.5">

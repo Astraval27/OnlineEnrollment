@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { X, CheckCircle2, UserPlus, Plus, Download, AlertCircle } from 'lucide-react';
 import { Student, Transaction } from '../../types';
+import { formatPhilippineMobile, formatDateOfBirthMask } from '../../utils/inputMasking';
 
 interface AddStudentModalProps {
   isOpen: boolean;
@@ -15,8 +16,10 @@ export const AddStudentModal: React.FC<AddStudentModalProps> = ({
 }) => {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
-  const [program, setProgram] = useState('B.S. Computer Science');
-  const [department, setDepartment] = useState('Engineering Dept');
+  const [phone, setPhone] = useState('');
+  const [dob, setDob] = useState('');
+  const [program, setProgram] = useState('Grade 11 - STEM');
+  const [department, setDepartment] = useState('Senior High School');
 
   if (!isOpen) return null;
 
@@ -31,6 +34,7 @@ export const AddStudentModal: React.FC<AddStudentModalProps> = ({
       studentId: `ST-2026-${Math.floor(100 + Math.random() * 900)}`,
       program,
       department,
+      parentGuardian: phone ? `Guardian Contact (${phone})` : undefined,
       currentStep: 1,
       totalSteps: 11,
       status: 'PENDING',
@@ -39,6 +43,8 @@ export const AddStudentModal: React.FC<AddStudentModalProps> = ({
 
     setName('');
     setEmail('');
+    setPhone('');
+    setDob('');
     onClose();
   };
 
@@ -84,14 +90,46 @@ export const AddStudentModal: React.FC<AddStudentModalProps> = ({
             />
           </div>
 
+          <div className="grid grid-cols-2 gap-2">
+            <div>
+              <label className="text-[10px] font-bold text-neutral-400 uppercase block mb-1">
+                Phone (+63 9XX-XXX-XXXX)
+              </label>
+              <input
+                type="tel"
+                maxLength={16}
+                placeholder="+63 917-555-0199"
+                value={phone}
+                onChange={(e) => setPhone(formatPhilippineMobile(e.target.value))}
+                className="w-full p-2 border border-slate-200 rounded-lg text-xs font-mono"
+              />
+              <span className="text-[9px] text-neutral-400 mt-0.5 block">Format: +63 9XX-XXX-XXXX</span>
+            </div>
+
+            <div>
+              <label className="text-[10px] font-bold text-neutral-400 uppercase block mb-1">
+                Date of Birth (YYYY-MM-DD)
+              </label>
+              <input
+                type="text"
+                maxLength={10}
+                placeholder="2010-08-15"
+                value={dob}
+                onChange={(e) => setDob(formatDateOfBirthMask(e.target.value))}
+                className="w-full p-2 border border-slate-200 rounded-lg text-xs font-mono"
+              />
+              <span className="text-[9px] text-neutral-400 mt-0.5 block">Format: YYYY-MM-DD</span>
+            </div>
+          </div>
+
           <div>
             <label className="text-[10px] font-bold text-neutral-400 uppercase block mb-1">
-              Program
+              Program / Grade & Strand
             </label>
             <input
               type="text"
               required
-              placeholder="e.g. B.S. Computer Science"
+              placeholder="e.g. Grade 11 - STEM"
               value={program}
               onChange={(e) => setProgram(e.target.value)}
               className="w-full p-2 border border-slate-200 rounded-lg text-xs"
