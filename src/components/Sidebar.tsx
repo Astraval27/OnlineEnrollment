@@ -108,41 +108,27 @@ export const Sidebar: React.FC<SidebarProps> = ({
               <button
                 id="nav-student-form"
                 onClick={() => onSelectScreen('enrollment_roadmap')}
-                className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
+                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
                   currentScreen === 'enrollment_roadmap'
                     ? 'bg-neutral-900 text-white font-semibold shadow-xs'
                     : 'text-neutral-600 hover:text-neutral-900 hover:bg-neutral-50'
                 }`}
               >
-                <div className="flex items-center gap-3">
-                  <FileText className={`w-4 h-4 ${currentScreen === 'enrollment_roadmap' ? 'text-white' : 'text-neutral-500'}`} />
-                  <span>Enrollment Roadmap</span>
-                </div>
-                <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${
-                  currentScreen === 'enrollment_roadmap' ? 'bg-neutral-800 text-amber-300' : 'bg-slate-100 text-neutral-600'
-                }`}>
-                  Step 5/11
-                </span>
+                <FileText className={`w-4 h-4 ${currentScreen === 'enrollment_roadmap' ? 'text-white' : 'text-neutral-500'}`} />
+                <span>Enrollment Roadmap</span>
               </button>
 
               <button
                 id="nav-student-upload"
                 onClick={() => onSelectScreen('upload_form')}
-                className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
+                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
                   currentScreen === 'upload_form'
                     ? 'bg-neutral-900 text-white font-semibold shadow-xs'
                     : 'text-neutral-600 hover:text-neutral-900 hover:bg-neutral-50'
                 }`}
               >
-                <div className="flex items-center gap-3">
-                  <Upload className={`w-4 h-4 ${currentScreen === 'upload_form' ? 'text-white' : 'text-neutral-500'}`} />
-                  <span>Upload Form 138 (SF9)</span>
-                </div>
-                <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${
-                  currentScreen === 'upload_form' ? 'bg-amber-400 text-neutral-900' : 'bg-amber-100 text-amber-800'
-                }`}>
-                  Action
-                </span>
+                <Upload className={`w-4 h-4 ${currentScreen === 'upload_form' ? 'text-white' : 'text-neutral-500'}`} />
+                <span>Upload Form 138 (SF9)</span>
               </button>
 
               <button

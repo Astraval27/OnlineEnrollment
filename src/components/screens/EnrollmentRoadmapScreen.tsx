@@ -14,7 +14,6 @@ import {
   FileCheck2,
   Calendar,
   Lock,
-  ChevronRight,
   Info,
   Printer,
   Sparkles,
@@ -700,12 +699,7 @@ Verification Code: DEPED-RO7-ROADMAP-${Date.now().toString(36).toUpperCase()}
                     <span className="text-xs font-bold text-amber-700">
                       In Progress
                     </span>
-                  ) : (
-                    <span className="text-xs text-neutral-400">
-                      Step {m.stepNumber}
-                    </span>
-                  )}
-                  <ChevronRight className="w-4 h-4 text-neutral-400" />
+                  ) : null}
                 </div>
               </div>
             );

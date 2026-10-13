@@ -117,7 +117,7 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
                 className="px-4 py-2 text-sm font-semibold rounded-lg border border-slate-300 text-neutral-700 hover:bg-slate-50 transition-colors flex items-center gap-2"
               >
                 <FileText className="w-4 h-4" />
-                <span>View 11-Step Roadmap</span>
+                <span>View Enrollment Roadmap</span>
               </button>
             </div>
           ) : currentScreen === 'user_settings' ? (

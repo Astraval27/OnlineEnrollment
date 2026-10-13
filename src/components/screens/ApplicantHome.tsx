@@ -191,8 +191,8 @@ Barcode: DEPED-RO7-ROADMAP-${Date.now().toString(36).toUpperCase()}
               <div className="w-12 h-12 rounded-xl bg-neutral-900 text-white flex items-center justify-center shadow-xs">
                 <FileText className="w-6 h-6" />
               </div>
-              <span className="px-2.5 py-1 rounded-full text-xs font-bold bg-amber-50 text-amber-800 border border-amber-200">
-                Step 5 of 11 (45%)
+              <span className="px-2.5 py-1 rounded-full text-xs font-bold bg-neutral-100 text-neutral-800">
+                45% Completed
               </span>
             </div>
 
@@ -238,7 +238,7 @@ Barcode: DEPED-RO7-ROADMAP-${Date.now().toString(36).toUpperCase()}
                 <Upload className="w-6 h-6" />
               </div>
               <span className="px-2.5 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-900 border border-amber-300">
-                1 Action Required
+                Pending Submission
               </span>
             </div>
 

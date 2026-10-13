@@ -3,12 +3,8 @@ import {
   SlidersHorizontal,
   ChevronDown,
   Download,
-  MoreVertical,
   ChevronLeft,
   ChevronRight,
-  Mail,
-  UserCheck,
-  Archive,
   Eye,
   FileSpreadsheet,
 } from 'lucide-react';
@@ -32,7 +28,6 @@ export const StudentDirectory: React.FC<StudentDirectoryProps> = ({
   const [selectedStatus, setSelectedStatus] = useState<string>('All');
   const [selectedStudentIds, setSelectedStudentIds] = useState<string[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
-  const [activeMenuId, setActiveMenuId] = useState<string | null>(null);
   const [viewingStudent, setViewingStudent] = useState<Student | null>(null);
   const [showDepEdFormsModal, setShowDepEdFormsModal] = useState(false);
 
@@ -84,14 +79,13 @@ export const StudentDirectory: React.FC<StudentDirectoryProps> = ({
   };
 
   const handleExportCSV = () => {
-    const headers = ['Student ID', 'Name', 'Email', 'Program', 'Department', 'Progress', 'Status'];
+    const headers = ['Student ID', 'Name', 'Email', 'Program', 'Department', 'Status'];
     const rows = filteredStudents.map((s) => [
       s.studentId,
       s.name,
       s.email,
       s.program,
       s.department,
-      `${s.currentStep}/${s.totalSteps}`,
       s.status,
     ]);
 
@@ -227,14 +221,8 @@ export const StudentDirectory: React.FC<StudentDirectoryProps> = ({
                 <th className="py-3.5 px-4 text-[11px] font-bold text-neutral-400 uppercase tracking-wider">
                   GRADE & SECTION
                 </th>
-                <th className="py-3.5 px-4 text-[11px] font-bold text-neutral-400 uppercase tracking-wider text-center">
-                  ENROLLMENT PROGRESS
-                </th>
-                <th className="py-3.5 px-4 text-[11px] font-bold text-neutral-400 uppercase tracking-wider">
-                  STATUS
-                </th>
                 <th className="py-3.5 pr-6 pl-4 text-[11px] font-bold text-neutral-400 uppercase tracking-wider text-right">
-                  ACTIONS
+                  STATUS
                 </th>
               </tr>
             </thead>
@@ -244,11 +232,15 @@ export const StudentDirectory: React.FC<StudentDirectoryProps> = ({
                 return (
                   <tr
                     key={student.id}
-                    className={`hover:bg-slate-50/80 transition-colors ${
+                    onClick={() => {
+                      setViewingStudent(student);
+                      onSelectStudent?.(student);
+                    }}
+                    className={`hover:bg-slate-50/80 transition-colors cursor-pointer ${
                       isSelected ? 'bg-neutral-50/60' : ''
                     }`}
                   >
-                    <td className="py-4 pl-6 pr-3">
+                    <td className="py-4 pl-6 pr-3" onClick={(e) => e.stopPropagation()}>
                       <input
                         type="checkbox"
                         checked={isSelected}
@@ -298,85 +290,9 @@ export const StudentDirectory: React.FC<StudentDirectoryProps> = ({
                       </div>
                     </td>
 
-                    {/* Enrollment Step */}
-                    <td className="py-4 px-4">
-                      <div className="flex flex-col items-center max-w-[130px] mx-auto gap-1">
-                        <span className="text-xs font-bold text-neutral-700">
-                          {student.currentStep}/{student.totalSteps}
-                        </span>
-                        <div className="w-full bg-slate-200 h-1.5 rounded-full overflow-hidden">
-                          <div
-                            className="bg-neutral-900 h-full rounded-full"
-                            style={{
-                              width: `${(student.currentStep / student.totalSteps) * 100}%`,
-                            }}
-                          />
-                        </div>
-                      </div>
-                    </td>
-
                     {/* Status */}
-                    <td className="py-4 px-4">
+                    <td className="py-4 pr-6 pl-4 text-right">
                       {renderStatusBadge(student.status)}
-                    </td>
-
-                    {/* Actions */}
-                    <td className="py-4 pr-6 pl-4 text-right relative">
-                      <button
-                        id={`btn-student-actions-${student.id}`}
-                        onClick={() =>
-                          setActiveMenuId(activeMenuId === student.id ? null : student.id)
-                        }
-                        className="p-1.5 text-neutral-400 hover:text-neutral-900 rounded hover:bg-slate-100 transition-colors"
-                      >
-                        <MoreVertical className="w-4 h-4" />
-                      </button>
-
-                      {activeMenuId === student.id && (
-                        <div className="absolute right-6 top-12 w-44 bg-white border border-slate-200 rounded-lg shadow-lg z-30 py-1 text-left text-xs">
-                          <button
-                            onClick={() => {
-                              setViewingStudent(student);
-                              setActiveMenuId(null);
-                              onSelectStudent?.(student);
-                            }}
-                            className="w-full px-3 py-2 text-neutral-700 hover:bg-slate-100 flex items-center gap-2"
-                          >
-                            <Eye className="w-3.5 h-3.5" />
-                            <span>View Full Profile</span>
-                          </button>
-                          <button
-                            onClick={() => {
-                              alert(`Sending email to ${student.email}`);
-                              setActiveMenuId(null);
-                            }}
-                            className="w-full px-3 py-2 text-neutral-700 hover:bg-slate-100 flex items-center gap-2"
-                          >
-                            <Mail className="w-3.5 h-3.5" />
-                            <span>Send Email</span>
-                          </button>
-                          <button
-                            onClick={() => {
-                              alert(`Updating enrollment status for ${student.name}`);
-                              setActiveMenuId(null);
-                            }}
-                            className="w-full px-3 py-2 text-neutral-700 hover:bg-slate-100 flex items-center gap-2"
-                          >
-                            <UserCheck className="w-3.5 h-3.5" />
-                            <span>Update Status</span>
-                          </button>
-                          <button
-                            onClick={() => {
-                              alert(`Archived ${student.name}`);
-                              setActiveMenuId(null);
-                            }}
-                            className="w-full px-3 py-2 text-neutral-700 hover:bg-slate-100 flex items-center gap-2 text-red-600"
-                          >
-                            <Archive className="w-3.5 h-3.5" />
-                            <span>Move to Archive</span>
-                          </button>
-                        </div>
-                      )}
                     </td>
                   </tr>
                 );
