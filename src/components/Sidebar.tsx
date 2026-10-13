@@ -107,20 +107,42 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
               <button
                 id="nav-student-form"
-                onClick={() => onSelectScreen('applicant_home')}
-                className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-neutral-600 hover:text-neutral-900 hover:bg-neutral-50 transition-colors"
+                onClick={() => onSelectScreen('enrollment_roadmap')}
+                className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
+                  currentScreen === 'enrollment_roadmap'
+                    ? 'bg-neutral-900 text-white font-semibold shadow-xs'
+                    : 'text-neutral-600 hover:text-neutral-900 hover:bg-neutral-50'
+                }`}
               >
-                <FileText className="w-4 h-4 text-neutral-500" />
-                <span>Enrollment Roadmap</span>
+                <div className="flex items-center gap-3">
+                  <FileText className={`w-4 h-4 ${currentScreen === 'enrollment_roadmap' ? 'text-white' : 'text-neutral-500'}`} />
+                  <span>Enrollment Roadmap</span>
+                </div>
+                <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${
+                  currentScreen === 'enrollment_roadmap' ? 'bg-neutral-800 text-amber-300' : 'bg-slate-100 text-neutral-600'
+                }`}>
+                  Step 5/11
+                </span>
               </button>
 
               <button
                 id="nav-student-upload"
-                onClick={() => onSelectScreen('applicant_home')}
-                className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-neutral-600 hover:text-neutral-900 hover:bg-neutral-50 transition-colors"
+                onClick={() => onSelectScreen('upload_form')}
+                className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
+                  currentScreen === 'upload_form'
+                    ? 'bg-neutral-900 text-white font-semibold shadow-xs'
+                    : 'text-neutral-600 hover:text-neutral-900 hover:bg-neutral-50'
+                }`}
               >
-                <Upload className="w-4 h-4 text-neutral-500" />
-                <span>Upload Form 138 (SF9)</span>
+                <div className="flex items-center gap-3">
+                  <Upload className={`w-4 h-4 ${currentScreen === 'upload_form' ? 'text-white' : 'text-neutral-500'}`} />
+                  <span>Upload Form 138 (SF9)</span>
+                </div>
+                <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${
+                  currentScreen === 'upload_form' ? 'bg-amber-400 text-neutral-900' : 'bg-amber-100 text-amber-800'
+                }`}>
+                  Action
+                </span>
               </button>
 
               <button
@@ -327,12 +349,12 @@ export const Sidebar: React.FC<SidebarProps> = ({
           </div>
         </div>
 
-        {/* In Registrar and Principal panels: Change this section into Log Out. In Learner panel: Remove completely since it already has a top logout button */}
-        {activeRole !== 'student' && onBackToHome && (
+        {/* Log Out button for all panels (Learner, Registrar, Principal/Admin) */}
+        {onBackToHome && (
           <button
             id="btn-sidebar-logout"
             onClick={onBackToHome}
-            className="mt-3 w-full py-2 px-3 rounded-lg text-xs font-bold text-neutral-700 hover:text-white hover:bg-neutral-900 border border-slate-200 hover:border-neutral-900 transition-all flex items-center justify-center gap-2 uppercase tracking-wider shadow-2xs group"
+            className="mt-3 w-full py-2 px-3 rounded-lg text-xs font-bold text-neutral-700 hover:text-white hover:bg-neutral-900 border border-slate-200 hover:border-neutral-900 transition-all flex items-center justify-center gap-2 uppercase tracking-wider shadow-2xs group cursor-pointer"
           >
             <LogOut className="w-3.5 h-3.5 text-neutral-500 group-hover:text-white transition-colors" />
             <span>Log Out</span>

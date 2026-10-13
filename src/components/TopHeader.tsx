@@ -1,5 +1,5 @@
 import React from 'react';
-import { Search, LogOut, Plus, Download, CheckCircle2, Camera, Shield } from 'lucide-react';
+import { Search, Plus, Download, CheckCircle2, Shield, Upload, FileText } from 'lucide-react';
 import { ScreenId, UserRole } from '../types';
 import { ROLE_CONFIGS, normalizeRole } from '../data/roles';
 
@@ -12,7 +12,6 @@ interface TopHeaderProps {
   onSecondaryAction?: () => void;
   onSelectScreen: (screen: ScreenId) => void;
   onBackToHome?: () => void;
-  onCapturePicture?: () => void;
 }
 
 export const TopHeader: React.FC<TopHeaderProps> = ({
@@ -24,7 +23,6 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
   onSecondaryAction,
   onSelectScreen,
   onBackToHome,
-  onCapturePicture,
 }) => {
   const activeRole = normalizeRole(currentRole);
   const roleConfig = ROLE_CONFIGS[activeRole];
@@ -34,6 +32,10 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
     switch (currentScreen) {
       case 'applicant_home':
         return 'K-12 Learner Enrollment Hub';
+      case 'enrollment_roadmap':
+        return 'K-12 Basic Education Enrollment Roadmap';
+      case 'upload_form':
+        return 'DepEd Form 138 (SF9) & Document Upload Center';
       case 'student_directory':
         return 'Learner Directory & DepEd LIS Records';
       case 'course_management':
@@ -84,18 +86,6 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
 
         {/* Right side controls */}
         <div className="flex items-center gap-3">
-          {/* Universal System Capture Button */}
-          {onCapturePicture && (
-            <button
-              id="btn-portal-capture-picture"
-              onClick={onCapturePicture}
-              className="px-3 py-2 text-xs font-bold rounded-lg border border-slate-300 text-neutral-800 hover:bg-slate-100 hover:border-neutral-900 transition-colors flex items-center gap-1.5 uppercase tracking-wider shrink-0 shadow-2xs"
-              title="Capture this whole system into a picture"
-            >
-              <Camera className="w-3.5 h-3.5 text-neutral-700" />
-              <span className="hidden sm:inline">System Picture</span>
-            </button>
-          )}
 
           {/* Search bar or icon depending on screen */}
           {currentScreen === 'applicant_home' ? (
@@ -107,14 +97,27 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
               >
                 <Search className="w-5 h-5" />
               </button>
-
+            </div>
+          ) : currentScreen === 'enrollment_roadmap' ? (
+            <div className="flex items-center gap-3">
               <button
-                id="btn-logout"
-                onClick={onPrimaryAction}
+                id="btn-header-goto-upload"
+                onClick={() => onSelectScreen('upload_form')}
                 className="px-4 py-2 text-sm font-semibold rounded-lg bg-neutral-900 text-white hover:bg-neutral-800 transition-colors flex items-center gap-2"
               >
-                <LogOut className="w-4 h-4" />
-                <span>Log Out</span>
+                <Upload className="w-4 h-4" />
+                <span>Upload Form 138 (SF9)</span>
+              </button>
+            </div>
+          ) : currentScreen === 'upload_form' ? (
+            <div className="flex items-center gap-3">
+              <button
+                id="btn-header-goto-roadmap"
+                onClick={() => onSelectScreen('enrollment_roadmap')}
+                className="px-4 py-2 text-sm font-semibold rounded-lg border border-slate-300 text-neutral-700 hover:bg-slate-50 transition-colors flex items-center gap-2"
+              >
+                <FileText className="w-4 h-4" />
+                <span>View 11-Step Roadmap</span>
               </button>
             </div>
           ) : currentScreen === 'user_settings' ? (

@@ -30,7 +30,7 @@ export const ROLE_CONFIGS: Record<'student' | 'registrar' | 'admin', RoleConfig>
     idNumber: 'LRN: 109283746512',
     department: 'Senior High School • Grade 11 - STEM A',
     roleDescription: 'Learner milestone roadmap, DepEd Form 138 submission, ESC/Voucher status & class schedule',
-    allowedScreens: ['applicant_home', 'user_settings'],
+    allowedScreens: ['applicant_home', 'enrollment_roadmap', 'upload_form', 'user_settings'],
     defaultScreen: 'applicant_home',
     colorScheme: {
       bg: 'bg-emerald-50',
@@ -75,6 +75,8 @@ export const ROLE_CONFIGS: Record<'student' | 'registrar' | 'admin', RoleConfig>
       'applications',
       'user_settings',
       'applicant_home',
+      'enrollment_roadmap',
+      'upload_form',
     ],
     defaultScreen: 'student_directory',
     colorScheme: {

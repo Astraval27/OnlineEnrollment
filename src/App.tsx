@@ -13,13 +13,14 @@ import { Homepage } from './components/homepage/Homepage';
 import { Sidebar } from './components/Sidebar';
 import { TopHeader } from './components/TopHeader';
 import { ApplicantHome } from './components/screens/ApplicantHome';
+import { EnrollmentRoadmapScreen } from './components/screens/EnrollmentRoadmapScreen';
+import { UploadFormScreen } from './components/screens/UploadFormScreen';
 import { StudentDirectory } from './components/screens/StudentDirectory';
 import { CourseManagement } from './components/screens/CourseManagement';
 import { FinancialBilling } from './components/screens/FinancialBilling';
 import { UserProfileSettings } from './components/screens/UserProfileSettings';
 import { ApplicationsRequirements } from './components/screens/ApplicationsRequirements';
 import { AddStudentModal, CreateInvoiceModal, BatchApprovalModal } from './components/modals/ActionModals';
-import { SystemCaptureModal } from './components/modals/SystemCaptureModal';
 
 export default function App() {
   // Navigation view: 'homepage' or 'portal'
@@ -41,9 +42,9 @@ export default function App() {
 
   // Modal states
   const [isAddStudentOpen, setIsAddStudentOpen] = useState(false);
+  const [isAddCourseOpen, setIsAddCourseOpen] = useState(false);
   const [isCreateInvoiceOpen, setIsCreateInvoiceOpen] = useState(false);
   const [isBatchApprovalOpen, setIsBatchApprovalOpen] = useState(false);
-  const [isCaptureModalOpen, setIsCaptureModalOpen] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   const showToast = (msg: string) => {
@@ -111,7 +112,7 @@ export default function App() {
         setIsAddStudentOpen(true);
         break;
       case 'course_management':
-        // handled in course component
+        setIsAddCourseOpen(true);
         break;
       case 'financial_billing':
         setIsCreateInvoiceOpen(true);
@@ -161,6 +162,20 @@ Payment Channels:
   const handleAddNewCourse = (newCourse: Partial<Course>) => {
     setCourses((prev) => [newCourse as Course, ...prev]);
     showToast(`Added course section ${newCourse.code} - ${newCourse.title}.`);
+  };
+
+  // Update course
+  const handleUpdateCourse = (updatedCourse: Course) => {
+    setCourses((prev) =>
+      prev.map((c) => (c.id === updatedCourse.id ? updatedCourse : c))
+    );
+    showToast(`Updated ${updatedCourse.code}: capacity ${updatedCourse.enrolled}/${updatedCourse.capacity}.`);
+  };
+
+  // Delete course
+  const handleDeleteCourse = (courseId: string) => {
+    setCourses((prev) => prev.filter((c) => c.id !== courseId));
+    showToast('Course section removed successfully.');
   };
 
   // Create invoice
@@ -223,7 +238,6 @@ Payment Channels:
               onSecondaryAction={handleDownloadReport}
               onSelectScreen={handleSelectScreen}
               onBackToHome={() => setViewMode('homepage')}
-              onCapturePicture={() => setIsCaptureModalOpen(true)}
             />
 
             {/* Content Area rendering the appropriate screen */}
@@ -231,10 +245,27 @@ Payment Channels:
               {currentScreen === 'applicant_home' && (
                 <ApplicantHome
                   activeStudent={activeStudent || INITIAL_STUDENTS[1]}
+                  onSelectScreen={handleSelectScreen}
                   onLogOut={() => {
                     setViewMode('homepage');
                     showToast('You have logged out of the Applicant portal.');
                   }}
+                />
+              )}
+
+              {currentScreen === 'enrollment_roadmap' && (
+                <EnrollmentRoadmapScreen
+                  activeStudent={activeStudent || INITIAL_STUDENTS[1]}
+                  onSelectScreen={handleSelectScreen}
+                  onNavigateToUpload={() => handleSelectScreen('upload_form')}
+                />
+              )}
+
+              {currentScreen === 'upload_form' && (
+                <UploadFormScreen
+                  activeStudent={activeStudent || INITIAL_STUDENTS[1]}
+                  onSelectScreen={handleSelectScreen}
+                  onNavigateToRoadmap={() => handleSelectScreen('enrollment_roadmap')}
                 />
               )}
 
@@ -251,6 +282,11 @@ Payment Channels:
                   courses={courses}
                   searchQuery={searchQuery}
                   onAddNewCourse={handleAddNewCourse}
+                  onUpdateCourse={handleUpdateCourse}
+                  onDeleteCourse={handleDeleteCourse}
+                  isAddModalOpen={isAddCourseOpen}
+                  onCloseAddModal={() => setIsAddCourseOpen(false)}
+                  onOpenAddModal={() => setIsAddCourseOpen(true)}
                 />
               )}
 
@@ -303,14 +339,6 @@ Payment Channels:
         isOpen={isBatchApprovalOpen}
         onClose={() => setIsBatchApprovalOpen(false)}
         onApproveAll={handleBatchApprove}
-      />
-
-      {/* Whole System Picture & Live Snapshot Modal */}
-      <SystemCaptureModal
-        isOpen={isCaptureModalOpen}
-        onClose={() => setIsCaptureModalOpen(false)}
-        targetElementId="root"
-        currentScreenName={currentScreen}
       />
     </div>
   );

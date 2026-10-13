@@ -8,7 +8,6 @@ import { ContactSection } from './ContactSection';
 import { LoginModal } from './LoginModal';
 import { AdmissionModal } from './AdmissionModal';
 import { HomepageAdmissionGate } from './HomepageAdmissionGate';
-import { SystemCaptureModal } from '../modals/SystemCaptureModal';
 import {
   GraduationCap,
   ArrowUpRight,
@@ -42,7 +41,6 @@ export const Homepage: React.FC<HomepageProps> = ({
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
   const [isAdmissionModalOpen, setIsAdmissionModalOpen] = useState(false);
   const [admissionPathway, setAdmissionPathway] = useState<'new_student' | 'transferee'>('new_student');
-  const [isCaptureModalOpen, setIsCaptureModalOpen] = useState(false);
 
   const handleNavigateSection = (sectionId: string) => {
     setActiveSection(sectionId as PublicPanel);
@@ -97,7 +95,6 @@ export const Homepage: React.FC<HomepageProps> = ({
       <Navbar
         onOpenLogin={() => setIsLoginModalOpen(true)}
         onOpenAdmission={() => setIsAdmissionModalOpen(true)}
-        onOpenCapture={() => setIsCaptureModalOpen(true)}
         onNavigateSection={handleNavigateSection}
         activeSection={activeSection}
       />
@@ -458,14 +455,6 @@ export const Homepage: React.FC<HomepageProps> = ({
         onClose={() => setIsAdmissionModalOpen(false)}
         onEnrollmentComplete={handleAdmissionComplete}
         initialPathway={admissionPathway}
-      />
-
-      {/* System Capture Picture Modal */}
-      <SystemCaptureModal
-        isOpen={isCaptureModalOpen}
-        onClose={() => setIsCaptureModalOpen(false)}
-        targetElementId="root"
-        currentScreenName={`E-ENROLL ${panelMeta[activeSection].label}`}
       />
     </div>
   );

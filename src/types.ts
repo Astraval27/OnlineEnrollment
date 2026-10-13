@@ -1,12 +1,14 @@
 export type UserRole = 'student' | 'registrar' | 'admin' | 'applicant';
 
 export type ScreenId =
-  | 'applicant_home'       // Page 1: Learner/Parent Dashboard & 11-Step Enrollment Roadmap
-  | 'student_directory'    // Page 2: K-12 Learner Directory & LRN Records
-  | 'course_management'    // Page 3: K-12 Subjects & Section Management
-  | 'financial_billing'    // Page 4: School Fees, Vouchers & Assessment
-  | 'user_settings'        // Page 5: Profile & School System Configuration
-  | 'applications';        // Page 6: Admissions & Form 138/SF9 Document Verification
+  | 'applicant_home'       // Learner/Parent Dashboard
+  | 'enrollment_roadmap'   // K-12 11-Step Enrollment Roadmap
+  | 'upload_form'          // Form 138 (SF9) & Document Verification Center
+  | 'student_directory'    // K-12 Learner Directory & LRN Records
+  | 'course_management'    // K-12 Subjects & Section Management
+  | 'financial_billing'    // School Fees, Vouchers & Assessment
+  | 'user_settings'        // Profile & School System Configuration
+  | 'applications';        // Admissions & Form 138/SF9 Document Verification
 
 export interface RoleInfo {
   id: 'student' | 'registrar' | 'admin';
@@ -50,6 +52,8 @@ export interface Course {
   schedule: string;
   status: 'ACTIVE' | 'ARCHIVED' | 'FULL';
   semester: string; // e.g., 'Semester 1', 'Full Academic Year'
+  room?: string;
+  section?: string;
 }
 
 export interface Transaction {
