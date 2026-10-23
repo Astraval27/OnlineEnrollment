@@ -224,11 +224,11 @@ export const CourseManagement: React.FC<CourseManagementProps> = ({
   ];
 
   return (
-    <div className="p-8 max-w-7xl mx-auto space-y-6">
+    <div className="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto space-y-6">
       {/* Top Filter and Tab Bar */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-2 border-b border-slate-200">
         {/* Left Tabs */}
-        <div className="flex items-center gap-6 text-sm">
+        <div className="flex items-center gap-4 sm:gap-6 text-xs sm:text-sm overflow-x-auto max-w-full pb-1">
           {(['Active Subjects', 'Archived', 'K-12 Curriculum'] as const).map((tab) => (
             <button
               key={tab}

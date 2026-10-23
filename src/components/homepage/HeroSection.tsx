@@ -73,7 +73,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
             </div>
 
             {/* Trust points */}
-            <div className="grid grid-cols-3 gap-4 pt-6 border-t border-slate-200 text-xs">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 pt-6 border-t border-slate-200 text-xs">
               <div className="flex items-center gap-2 text-neutral-600">
                 <CheckCircle2 className="w-4 h-4 text-neutral-900 shrink-0" />
                 <span className="font-medium">100% Digital Document Upload</span>
@@ -95,7 +95,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
               id="hero-display-frame"
               className="relative w-full bg-slate-900 rounded-2xl overflow-hidden shadow-xl flex flex-col group border border-slate-200"
             >
-              <div className="relative w-full h-[380px] sm:h-[400px] flex items-center justify-center p-2 bg-neutral-950">
+              <div className="relative w-full h-[260px] sm:h-[340px] md:h-[400px] flex items-center justify-center p-2 bg-neutral-950">
                 <img
                   src={depedEnrollmentDeskImage}
                   alt="DepEd E-Enroll Online Registration & Admissions Desk"

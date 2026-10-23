@@ -13,6 +13,8 @@ import {
   ShieldCheck,
   UserCheck,
   LogOut,
+  CalendarDays,
+  X,
 } from 'lucide-react';
 import { UserRole, ScreenId } from '../types';
 import { ROLE_CONFIGS, normalizeRole } from '../data/roles';
@@ -25,6 +27,8 @@ interface SidebarProps {
   onChangeRole?: (role: UserRole) => void;
   onBackToHome?: () => void;
   unreadCount?: number;
+  isOpenMobile?: boolean;
+  onCloseMobile?: () => void;
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({
@@ -35,9 +39,18 @@ export const Sidebar: React.FC<SidebarProps> = ({
   onChangeRole,
   onBackToHome,
   unreadCount = 3,
+  isOpenMobile = false,
+  onCloseMobile,
 }) => {
   const activeRole = normalizeRole(currentRole);
   const roleConfig = ROLE_CONFIGS[activeRole];
+
+  const handleNavClick = (screen: ScreenId) => {
+    onSelectScreen(screen);
+    if (onCloseMobile) {
+      onCloseMobile();
+    }
+  };
 
   const handleRoleChange = (newRole: 'student' | 'registrar' | 'admin') => {
     if (onChangeRole) {
@@ -45,34 +58,70 @@ export const Sidebar: React.FC<SidebarProps> = ({
     } else if (onToggleRole) {
       onToggleRole();
     }
+    if (onCloseMobile) {
+      onCloseMobile();
+    }
+  };
+
+  const handleLogout = () => {
+    if (onBackToHome) {
+      onBackToHome();
+    }
+    if (onCloseMobile) {
+      onCloseMobile();
+    }
   };
 
   return (
-    <aside
-      id="main-sidebar"
-      className="w-64 bg-white border-r border-slate-200 flex flex-col justify-between shrink-0 h-screen sticky top-0 z-20 select-none"
-    >
-      {/* Top section */}
-      <div>
-        {/* Logo brand */}
-        <div className="h-16 px-6 flex items-center justify-between border-b border-slate-100">
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-lg bg-neutral-900 flex items-center justify-center text-white shadow-xs">
-              <GraduationCap className="w-5 h-5 text-white" />
-            </div>
-            <div className="flex flex-col">
-              <span className="font-extrabold text-base tracking-widest text-neutral-900 leading-tight">
-                E-ENROLL
-              </span>
-              <span className="text-[9px] tracking-wider uppercase font-semibold text-neutral-400">
-                K-12 Basic Education
-              </span>
-            </div>
-          </div>
-        </div>
+    <>
+      {/* Mobile Backdrop Overlay */}
+      {isOpenMobile && (
+        <div
+          onClick={onCloseMobile}
+          className="fixed inset-0 bg-black/50 backdrop-blur-xs z-40 lg:hidden transition-opacity"
+          aria-hidden="true"
+        />
+      )}
 
-        {/* Current Role Banner */}
-        <div className={`px-4 py-2.5 border-b border-slate-100 ${roleConfig.colorScheme.bg} flex items-center justify-between`}>
+      <aside
+        id="main-sidebar"
+        className={`fixed inset-y-0 left-0 z-50 w-72 max-w-[85vw] bg-white border-r border-slate-200 flex flex-col justify-between shrink-0 h-full transition-transform duration-300 ease-in-out select-none lg:static lg:w-64 lg:h-screen lg:sticky lg:top-0 lg:z-20 lg:translate-x-0 ${
+          isOpenMobile ? 'translate-x-0 shadow-2xl' : '-translate-x-full'
+        }`}
+      >
+        {/* Top section: fixed header + scrollable navigation */}
+        <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
+          {/* Logo brand */}
+          <div className="h-16 px-5 sm:px-6 flex items-center justify-between border-b border-slate-100 shrink-0">
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 rounded-lg bg-neutral-900 flex items-center justify-center text-white shadow-xs">
+                <GraduationCap className="w-5 h-5 text-white" />
+              </div>
+              <div className="flex flex-col">
+                <span className="font-extrabold text-base tracking-widest text-neutral-900 leading-tight">
+                  E-ENROLL
+                </span>
+                <span className="text-[9px] tracking-wider uppercase font-semibold text-neutral-400">
+                  K-12 Basic Education
+                </span>
+              </div>
+            </div>
+
+            {/* Close button on mobile/tablet screens */}
+            {onCloseMobile && (
+              <button
+                id="btn-close-mobile-sidebar"
+                onClick={onCloseMobile}
+                className="p-1.5 -mr-1.5 rounded-lg text-neutral-400 hover:text-neutral-900 hover:bg-slate-100 lg:hidden transition-colors"
+                aria-label="Close menu"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            )}
+          </div>
+
+          {/* Current Role Banner */}
+          <div className={`px-4 py-2.5 border-b border-slate-100 shrink-0 ${roleConfig.colorScheme.bg} flex items-center justify-between`}>
           <div className="flex items-center gap-2">
             <span className="w-2 h-2 rounded-full bg-neutral-900 animate-pulse" />
             <span className="text-[10px] font-extrabold uppercase tracking-wider text-neutral-800">
@@ -84,8 +133,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
           </span>
         </div>
 
-        {/* Navigation list based on 3 roles */}
-        <div className="px-4 py-4 space-y-1">
+        {/* Navigation list based on 3 roles (scrollable on all devices) */}
+        <div className="flex-1 overflow-y-auto px-4 py-4 space-y-1 min-h-0">
           {/* ROLE 1: STUDENT */}
           {activeRole === 'student' && (
             <>
@@ -94,7 +143,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
               </div>
               <button
                 id="nav-student-dashboard"
-                onClick={() => onSelectScreen('applicant_home')}
+                onClick={() => handleNavClick('applicant_home')}
                 className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
                   currentScreen === 'applicant_home'
                     ? 'bg-neutral-900 text-white font-semibold shadow-xs'
@@ -107,7 +156,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
               <button
                 id="nav-student-form"
-                onClick={() => onSelectScreen('enrollment_roadmap')}
+                onClick={() => handleNavClick('enrollment_roadmap')}
                 className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
                   currentScreen === 'enrollment_roadmap'
                     ? 'bg-neutral-900 text-white font-semibold shadow-xs'
@@ -120,7 +169,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
               <button
                 id="nav-student-upload"
-                onClick={() => onSelectScreen('upload_form')}
+                onClick={() => handleNavClick('upload_form')}
                 className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
                   currentScreen === 'upload_form'
                     ? 'bg-neutral-900 text-white font-semibold shadow-xs'
@@ -132,16 +181,35 @@ export const Sidebar: React.FC<SidebarProps> = ({
               </button>
 
               <button
+                id="nav-student-schedule"
+                onClick={() => handleNavClick('student_schedule')}
+                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
+                  currentScreen === 'student_schedule'
+                    ? 'bg-neutral-900 text-white font-semibold shadow-xs'
+                    : 'text-neutral-600 hover:text-neutral-900 hover:bg-neutral-50'
+                }`}
+              >
+                <CalendarDays className={`w-4 h-4 ${currentScreen === 'student_schedule' ? 'text-white' : 'text-neutral-500'}`} />
+                <span>Class Schedule</span>
+              </button>
+
+              <button
                 id="nav-student-notifications"
-                onClick={() => {}}
-                className="w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-sm font-medium text-neutral-600 hover:text-neutral-900 hover:bg-neutral-50 transition-colors"
+                onClick={() => handleNavClick('student_notifications')}
+                className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
+                  currentScreen === 'student_notifications'
+                    ? 'bg-neutral-900 text-white font-semibold shadow-xs'
+                    : 'text-neutral-600 hover:text-neutral-900 hover:bg-neutral-50'
+                }`}
               >
                 <div className="flex items-center gap-3">
-                  <Bell className="w-4 h-4 text-neutral-500" />
+                  <Bell className={`w-4 h-4 ${currentScreen === 'student_notifications' ? 'text-white' : 'text-neutral-500'}`} />
                   <span>Notifications</span>
                 </div>
                 {unreadCount > 0 && (
-                  <span className="w-5 h-5 rounded-full bg-emerald-600 text-white text-xs flex items-center justify-center font-bold">
+                  <span className={`w-5 h-5 rounded-full text-xs flex items-center justify-center font-bold ${
+                    currentScreen === 'student_notifications' ? 'bg-neutral-800 text-white' : 'bg-emerald-600 text-white'
+                  }`}>
                     {unreadCount}
                   </span>
                 )}
@@ -149,7 +217,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
               <button
                 id="nav-student-settings"
-                onClick={() => onSelectScreen('user_settings')}
+                onClick={() => handleNavClick('user_settings')}
                 className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
                   currentScreen === 'user_settings'
                     ? 'bg-neutral-900 text-white font-semibold shadow-xs'
@@ -170,7 +238,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
               </div>
               <button
                 id="nav-registrar-applications"
-                onClick={() => onSelectScreen('applications')}
+                onClick={() => handleNavClick('applications')}
                 className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
                   currentScreen === 'applications'
                     ? 'bg-neutral-900 text-white font-semibold shadow-xs'
@@ -183,7 +251,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
               <button
                 id="nav-registrar-students"
-                onClick={() => onSelectScreen('student_directory')}
+                onClick={() => handleNavClick('student_directory')}
                 className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
                   currentScreen === 'student_directory'
                     ? 'bg-neutral-900 text-white font-semibold shadow-xs'
@@ -196,7 +264,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
               <button
                 id="nav-registrar-courses"
-                onClick={() => onSelectScreen('course_management')}
+                onClick={() => handleNavClick('course_management')}
                 className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
                   currentScreen === 'course_management'
                     ? 'bg-neutral-900 text-white font-semibold shadow-xs'
@@ -209,7 +277,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
               <button
                 id="nav-registrar-documents"
-                onClick={() => onSelectScreen('applications')}
+                onClick={() => handleNavClick('applications')}
                 className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-neutral-600 hover:text-neutral-900 hover:bg-neutral-50 transition-colors"
               >
                 <FolderArchive className="w-4 h-4 text-neutral-500" />
@@ -218,7 +286,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
               <button
                 id="nav-registrar-settings"
-                onClick={() => onSelectScreen('user_settings')}
+                onClick={() => handleNavClick('user_settings')}
                 className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
                   currentScreen === 'user_settings'
                     ? 'bg-neutral-900 text-white font-semibold shadow-xs'
@@ -239,7 +307,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
               </div>
               <button
                 id="nav-admin-students"
-                onClick={() => onSelectScreen('student_directory')}
+                onClick={() => handleNavClick('student_directory')}
                 className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
                   currentScreen === 'student_directory'
                     ? 'bg-neutral-900 text-white font-semibold shadow-xs'
@@ -252,7 +320,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
               <button
                 id="nav-admin-financial"
-                onClick={() => onSelectScreen('financial_billing')}
+                onClick={() => handleNavClick('financial_billing')}
                 className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
                   currentScreen === 'financial_billing'
                     ? 'bg-neutral-900 text-white font-semibold shadow-xs'
@@ -265,7 +333,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
               <button
                 id="nav-admin-courses"
-                onClick={() => onSelectScreen('course_management')}
+                onClick={() => handleNavClick('course_management')}
                 className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
                   currentScreen === 'course_management'
                     ? 'bg-neutral-900 text-white font-semibold shadow-xs'
@@ -278,7 +346,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
               <button
                 id="nav-admin-applications"
-                onClick={() => onSelectScreen('applications')}
+                onClick={() => handleNavClick('applications')}
                 className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
                   currentScreen === 'applications'
                     ? 'bg-neutral-900 text-white font-semibold shadow-xs'
@@ -291,7 +359,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
               <button
                 id="nav-admin-student-view"
-                onClick={() => onSelectScreen('applicant_home')}
+                onClick={() => handleNavClick('applicant_home')}
                 className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
                   currentScreen === 'applicant_home'
                     ? 'bg-neutral-900 text-white font-semibold shadow-xs'
@@ -304,7 +372,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
               <button
                 id="nav-admin-settings"
-                onClick={() => onSelectScreen('user_settings')}
+                onClick={() => handleNavClick('user_settings')}
                 className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
                   currentScreen === 'user_settings'
                     ? 'bg-neutral-900 text-white font-semibold shadow-xs'
@@ -339,7 +407,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
         {onBackToHome && (
           <button
             id="btn-sidebar-logout"
-            onClick={onBackToHome}
+            onClick={handleLogout}
             className="mt-3 w-full py-2 px-3 rounded-lg text-xs font-bold text-neutral-700 hover:text-white hover:bg-neutral-900 border border-slate-200 hover:border-neutral-900 transition-all flex items-center justify-center gap-2 uppercase tracking-wider shadow-2xs group cursor-pointer"
           >
             <LogOut className="w-3.5 h-3.5 text-neutral-500 group-hover:text-white transition-colors" />
@@ -348,5 +416,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
         )}
       </div>
     </aside>
+    </>
   );
 };

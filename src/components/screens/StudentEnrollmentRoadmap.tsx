@@ -210,7 +210,7 @@ Timestamp: ${new Date().toLocaleString()}
   const isTempId = displayIdentifier.startsWith('TEMP');
 
   return (
-    <div className="p-6 sm:p-8 max-w-7xl mx-auto space-y-6">
+    <div className="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto space-y-6">
       {/* Toast Alert */}
       {toastMessage && (
         <div className="fixed bottom-6 right-6 z-50 bg-neutral-900 text-white text-xs font-semibold px-4 py-3 rounded-lg shadow-xl border border-neutral-800 flex items-center gap-2.5 animate-in slide-in-from-bottom-2">
@@ -252,7 +252,7 @@ Timestamp: ${new Date().toLocaleString()}
       {/* Welcome Card with Live Status */}
       <div
         id="applicant-welcome-card"
-        className="bg-white border border-slate-200 rounded-xl p-6 flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-xs"
+        className="bg-white border border-slate-200 rounded-xl p-4 sm:p-6 flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-xs"
       >
         <div>
           <div className="flex flex-wrap items-center gap-2.5">

@@ -252,7 +252,7 @@ Barcode: DEPED-ACK-${Date.now().toString(36).toUpperCase()}
   };
 
   return (
-    <div className="p-6 sm:p-8 max-w-7xl mx-auto space-y-6">
+    <div className="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto space-y-6">
       {/* Toast Notification */}
       {toastMessage && (
         <div className="fixed bottom-6 right-6 z-50 bg-neutral-900 text-white text-xs font-semibold px-4 py-3 rounded-lg shadow-xl border border-neutral-800 flex items-center gap-2.5 animate-in slide-in-from-bottom-2">
@@ -292,7 +292,7 @@ Barcode: DEPED-ACK-${Date.now().toString(36).toUpperCase()}
       />
 
       {/* Header Card */}
-      <div className="bg-white border border-slate-200 rounded-xl p-6 shadow-xs flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+      <div className="bg-white border border-slate-200 rounded-xl p-4 sm:p-6 shadow-xs flex flex-col lg:flex-row lg:items-center justify-between gap-6">
         <div>
           <div className="flex flex-wrap items-center gap-2.5">
             <span className="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-neutral-900 text-white uppercase tracking-wider">

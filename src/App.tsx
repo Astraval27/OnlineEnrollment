@@ -15,6 +15,8 @@ import { TopHeader } from './components/TopHeader';
 import { ApplicantHome } from './components/screens/ApplicantHome';
 import { EnrollmentRoadmapScreen } from './components/screens/EnrollmentRoadmapScreen';
 import { UploadFormScreen } from './components/screens/UploadFormScreen';
+import { StudentClassScheduleScreen } from './components/screens/StudentClassScheduleScreen';
+import { StudentNotificationsScreen } from './components/screens/StudentNotificationsScreen';
 import { StudentDirectory } from './components/screens/StudentDirectory';
 import { CourseManagement } from './components/screens/CourseManagement';
 import { FinancialBilling } from './components/screens/FinancialBilling';
@@ -31,6 +33,7 @@ export default function App() {
   const [currentRole, setCurrentRole] = useState<UserRole>('student');
   const [searchQuery, setSearchQuery] = useState('');
   const [activeStudent, setActiveStudent] = useState<Partial<Student> | null>(INITIAL_STUDENTS[1]); // Defaults to Johnny Tabulo or newly registered applicant
+  const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
 
   // Data states
   const [students, setStudents] = useState<Student[]>(INITIAL_STUDENTS);
@@ -76,6 +79,7 @@ export default function App() {
     if (!allowed.includes(currentScreen)) {
       setCurrentScreen(ROLE_CONFIGS[normalized].defaultScreen);
     }
+    setIsMobileSidebarOpen(false);
     showToast(`Switched active profile to ${ROLE_CONFIGS[normalized].label} (${ROLE_CONFIGS[normalized].name}).`);
   };
 
@@ -92,6 +96,7 @@ export default function App() {
       }
     }
     setCurrentScreen(screen);
+    setIsMobileSidebarOpen(false);
   };
 
   const handleToggleRole = () => {
@@ -214,14 +219,17 @@ Payment Channels:
       ) : (
         /* VIEW 2: PORTAL PANEL (WITH ALL 6 SCREENS) */
         <div className="min-h-screen flex">
-          {/* Main Sidebar */}
+          {/* Main Sidebar (Drawer on mobile/tablet, persistent on desktop) */}
           <Sidebar
             currentRole={currentRole}
             currentScreen={currentScreen}
             onSelectScreen={handleSelectScreen}
             onToggleRole={handleToggleRole}
             onChangeRole={handleChangeRole}
+            isOpenMobile={isMobileSidebarOpen}
+            onCloseMobile={() => setIsMobileSidebarOpen(false)}
             onBackToHome={() => {
+              setIsMobileSidebarOpen(false);
               setViewMode('homepage');
               showToast('You have successfully logged out of the portal.');
             }}
@@ -237,6 +245,7 @@ Payment Channels:
               onPrimaryAction={handlePrimaryAction}
               onSecondaryAction={handleDownloadReport}
               onSelectScreen={handleSelectScreen}
+              onOpenMobileSidebar={() => setIsMobileSidebarOpen(true)}
               onBackToHome={() => setViewMode('homepage')}
             />
 
@@ -265,6 +274,22 @@ Payment Channels:
                 <UploadFormScreen
                   activeStudent={activeStudent || INITIAL_STUDENTS[1]}
                   onSelectScreen={handleSelectScreen}
+                  onNavigateToRoadmap={() => handleSelectScreen('enrollment_roadmap')}
+                />
+              )}
+
+              {currentScreen === 'student_schedule' && (
+                <StudentClassScheduleScreen
+                  activeStudent={activeStudent || INITIAL_STUDENTS[1]}
+                  onSelectScreen={handleSelectScreen}
+                />
+              )}
+
+              {currentScreen === 'student_notifications' && (
+                <StudentNotificationsScreen
+                  activeStudent={activeStudent || INITIAL_STUDENTS[1]}
+                  onSelectScreen={handleSelectScreen}
+                  onNavigateToUpload={() => handleSelectScreen('upload_form')}
                   onNavigateToRoadmap={() => handleSelectScreen('enrollment_roadmap')}
                 />
               )}

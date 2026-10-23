@@ -182,18 +182,18 @@ export const AdmissionGuideSection: React.FC<AdmissionGuideSectionProps> = ({
         </div>
 
         {/* 11-Step Stepper Bar */}
-        <div className="bg-slate-50 border border-slate-200 rounded-2xl p-6 shadow-xs space-y-6">
-          <div className="flex items-center justify-between">
-            <h3 className="text-xs font-bold tracking-wider text-neutral-500 uppercase">
+        <div className="bg-slate-50 border border-slate-200 rounded-2xl p-4 sm:p-6 shadow-xs space-y-4 sm:space-y-6">
+          <div className="flex items-center justify-between gap-2">
+            <h3 className="text-[11px] sm:text-xs font-bold tracking-wider text-neutral-500 uppercase">
               SELECT A STEP TO VIEW REQUIREMENTS & INSTRUCTIONS
             </h3>
-            <span className="text-xs font-mono font-bold text-neutral-800">
+            <span className="text-xs font-mono font-bold text-neutral-800 shrink-0">
               STEP {activeStepTab} OF 11
             </span>
           </div>
 
           {/* Stepper Buttons 1 to 11 */}
-          <div className="grid grid-cols-11 gap-1.5 sm:gap-2">
+          <div className="flex items-center gap-1.5 overflow-x-auto pb-2 sm:pb-0 sm:grid sm:grid-cols-11 sm:gap-2 sm:overflow-visible no-scrollbar">
             {enrollmentSteps.map((s) => {
               const isSelected = activeStepTab === s.step;
               return (
@@ -201,7 +201,7 @@ export const AdmissionGuideSection: React.FC<AdmissionGuideSectionProps> = ({
                   key={s.step}
                   id={`btn-step-guide-${s.step}`}
                   onClick={() => setActiveStepTab(s.step)}
-                  className={`py-3 rounded-lg flex flex-col items-center justify-center transition-all ${
+                  className={`py-2.5 sm:py-3 px-3 sm:px-0 min-w-[48px] sm:min-w-0 rounded-lg flex flex-col items-center justify-center transition-all shrink-0 sm:shrink ${
                     isSelected
                       ? 'bg-neutral-900 text-white shadow-sm ring-2 ring-neutral-900 ring-offset-2'
                       : 'bg-white border border-slate-200 text-neutral-700 hover:border-neutral-900 hover:bg-slate-100'

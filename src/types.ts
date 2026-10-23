@@ -4,6 +4,8 @@ export type ScreenId =
   | 'applicant_home'       // Learner/Parent Dashboard
   | 'enrollment_roadmap'   // K-12 11-Step Enrollment Roadmap
   | 'upload_form'          // Form 138 (SF9) & Document Verification Center
+  | 'student_schedule'     // Structured Weekly Class Schedule & Timetable
+  | 'student_notifications'// Student Notification Hub: Transactions & Registrar File Follow-ups
   | 'student_directory'    // K-12 Learner Directory & LRN Records
   | 'course_management'    // K-12 Subjects & Section Management
   | 'financial_billing'    // School Fees, Vouchers & Assessment
@@ -107,6 +109,25 @@ export interface NotificationItem {
   description: string;
   timestamp: string;
   read: boolean;
+  type?: 'TRANSACTION' | 'REGISTRAR_FOLLOWUP' | 'ACADEMIC_LIS';
+  category?: string;
+  priority?: 'URGENT' | 'IMPORTANT' | 'NORMAL';
+  // Transaction specifics
+  amount?: number;
+  orNumber?: string;
+  transactionId?: string;
+  paymentMethod?: string;
+  cashierName?: string;
+  feeBreakdown?: { item: string; amount: number }[];
+  // Registrar follow-up file specifics
+  documentName?: string;
+  requiredAction?: string;
+  dueDate?: string;
+  sender?: string;
+  depEdPolicyCitation?: string;
+  isUnderUndertaking?: boolean;
+  isResolved?: boolean;
+  uploadedFileName?: string;
 }
 
 export interface UserAuthAccount {
@@ -212,4 +233,39 @@ export interface AdmissionRegisterPayload {
   affidavitSigned?: boolean;
   affidavitData?: any;
   privacyConsentAgreed: boolean;
+}
+
+export type SubjectCategory = 'CORE' | 'APPLIED' | 'SPECIALIZED' | 'INSTITUTIONAL' | 'CO_CURRICULAR';
+
+export interface SchedulePeriod {
+  id: string;
+  periodNumber: number;
+  startTime: string; // e.g. "07:30"
+  endTime: string;   // e.g. "08:30"
+  timeLabel: string; // e.g. "07:30 AM - 08:30 AM"
+  subjectCode: string;
+  subjectTitle: string;
+  category: SubjectCategory;
+  room: string;
+  building: string;
+  instructorName: string;
+  instructorTitle: string;
+  instructorEmail: string;
+  instructorConsultation: string;
+  units: number;
+  colorTheme: {
+    bg: string;
+    border: string;
+    text: string;
+    tag: string;
+  };
+  isBreak?: boolean;
+  breakLabel?: string;
+}
+
+export interface DaySchedule {
+  dayId: 'MON' | 'TUE' | 'WED' | 'THU' | 'FRI';
+  dayName: string;
+  shortName: string;
+  periods: SchedulePeriod[];
 }

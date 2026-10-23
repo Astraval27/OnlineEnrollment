@@ -372,25 +372,163 @@ export const INITIAL_DOCUMENT_QUEUE: DocumentQueueItem[] = [
 ];
 
 export const APPLICANT_NOTIFICATIONS: NotificationItem[] = [
+  // 1. REGISTRAR FOLLOW-UP REQUIREMENT (URGENT UNDERTAKING)
   {
-    id: 'n1',
-    title: 'DepEd Form 138 Verified',
-    description: 'Your Grade 10 final report card has been verified by the K-12 Registrar.',
-    timestamp: '2 hours ago',
+    id: 'notif-req-sf9',
+    type: 'REGISTRAR_FOLLOWUP',
+    category: 'Registrar Document Follow-up',
+    title: 'Follow-up Requirement: DepEd Form 138 (SF9 Progress Report Card)',
+    description:
+      'Pursuant to DepEd Order No. 03, s. 2018 and your executed Affidavit of Undertaking, please submit your final Grade 10 Form 138 (SF9) containing all four quarter grades and General Average before the October 31, 2026 deadline.',
+    timestamp: 'Today at 08:30 AM',
     read: false,
+    priority: 'URGENT',
+    sender: 'Office of the School Registrar (Ms. Maria Santos)',
+    dueDate: 'October 31, 2026',
+    documentName: 'DepEd Form 138 / SF9 (Report Card)',
+    requiredAction: 'Upload clear front-and-back scan of SF9 or present signed original copy at Registrar Window 1.',
+    depEdPolicyCitation: 'DepEd Order No. 03, s. 2018 (Affidavit of Undertaking Clause)',
+    isUnderUndertaking: true,
+    isResolved: false,
   },
+
+  // 2. SUCCESSFUL FINANCIAL TRANSACTION (DOWNPAYMENT & ENROLLMENT CONFIRMATION)
   {
-    id: 'n2',
-    title: 'SHS Voucher Grant Applied',
-    description: 'DepEd Senior High School Voucher discount has been reflected in your assessment.',
-    timestamp: 'Yesterday',
+    id: 'notif-trx-downpayment',
+    type: 'TRANSACTION',
+    category: 'Successful Payment Receipt',
+    title: 'Payment Received: Grade 11 STEM Downpayment & Registration Fee',
+    description:
+      'Official Receipt OR-2026-08129 has been generated. Downpayment of ₱3,500.00 settled via GCash has been confirmed by Cashier Counter 2.',
+    timestamp: 'August 12, 2026, 10:30 AM',
     read: true,
+    priority: 'NORMAL',
+    amount: 3500.0,
+    orNumber: 'OR-2026-08129',
+    transactionId: 'TRX-99821',
+    paymentMethod: 'GCash (Ref # 8392019482)',
+    cashierName: 'Maria Santos (Cashier/Registrar)',
+    feeBreakdown: [
+      { item: 'K-12 Basic Registration Fee', amount: 1500.0 },
+      { item: 'STEM Program Laboratory Downpayment', amount: 1500.0 },
+      { item: 'Student Insurance & ID Card', amount: 500.0 },
+    ],
   },
+
+  // 3. REGISTRAR FOLLOW-UP REQUIREMENT (PSA BIRTH CERTIFICATE - VERIFIED)
   {
-    id: 'n3',
-    title: 'Learner LRN Validated',
-    description: 'Your 12-digit DepEd LRN (109283746512) is confirmed active in LIS.',
-    timestamp: '2 days ago',
+    id: 'notif-req-psa',
+    type: 'REGISTRAR_FOLLOWUP',
+    category: 'Registrar Document Verification',
+    title: 'Follow-up Notice: PSA Birth Certificate Verified & Recorded',
+    description:
+      'Philippine Statistics Authority (PSA) Security Paper Birth Certificate has been verified by the Document Verification Desk and permanently tagged to LRN 109283746512.',
+    timestamp: 'August 14, 2026, 04:15 PM',
     read: true,
+    priority: 'NORMAL',
+    sender: 'Office of the School Registrar',
+    dueDate: 'Completed',
+    documentName: 'PSA Birth Certificate',
+    requiredAction: 'None. Document is fully verified in DepEd Master Registry.',
+    depEdPolicyCitation: 'DepEd Order No. 58, s. 2017 (Learner Information System)',
+    isUnderUndertaking: false,
+    isResolved: true,
+    uploadedFileName: 'PSA_Birth_Certificate_109283746512.pdf',
+  },
+
+  // 4. SUCCESSFUL TRANSACTION (DEPED PEAC SHS VOUCHER SUBSIDY APPLIED)
+  {
+    id: 'notif-trx-voucher',
+    type: 'TRANSACTION',
+    category: 'Government Subsidy Credit',
+    title: 'Voucher Credit Applied: DepEd Senior High School Voucher (SHS VP)',
+    description:
+      '₱17,500.00 government voucher subsidy has been applied to your tuition assessment for SY 2026-2027 under PEAC / DepEd Order No. 19, s. 2017. Current outstanding tuition is ₱0.00.',
+    timestamp: 'August 15, 2026, 02:00 PM',
+    read: true,
+    priority: 'NORMAL',
+    amount: 17500.0,
+    orNumber: 'VOUCHER-PEAC-2026-0049',
+    transactionId: 'TRX-VOUCHER-1092',
+    paymentMethod: 'DepEd PEAC Government Grant',
+    cashierName: 'School Accounting & Billing Office',
+    feeBreakdown: [
+      { item: 'Senior High School Tuition Subsidy (Semester 1)', amount: 8750.0 },
+      { item: 'Senior High School Tuition Subsidy (Semester 2)', amount: 8750.0 },
+    ],
+  },
+
+  // 5. REGISTRAR FOLLOW-UP REQUIREMENT (CERTIFICATE OF GOOD MORAL CHARACTER)
+  {
+    id: 'notif-req-good-moral',
+    type: 'REGISTRAR_FOLLOWUP',
+    category: 'Registrar Document Follow-up',
+    title: 'Follow-up Requirement: Certificate of Good Moral Character',
+    description:
+      'The Admissions Committee requests submission of your Certificate of Good Moral Character signed by the Principal or Guidance Office of your junior high school of origin.',
+    timestamp: 'Yesterday at 02:40 PM',
+    read: false,
+    priority: 'IMPORTANT',
+    sender: 'Guidance & Admissions Office',
+    dueDate: 'October 15, 2026',
+    documentName: 'Certificate of Good Moral Character',
+    requiredAction: 'Upload scanned PDF copy or submit original certified letter to Guidance Desk.',
+    isUnderUndertaking: false,
+    isResolved: false,
+  },
+
+  // 6. SUCCESSFUL FINANCIAL TRANSACTION (SCIENCE LAB APPARATUS & STEM LEARNING KIT)
+  {
+    id: 'notif-trx-lab',
+    type: 'TRANSACTION',
+    category: 'Successful Payment Receipt',
+    title: 'Payment Received: STEM Laboratory Apparatus & Chemistry Manual',
+    description:
+      'Official Receipt OR-2026-09881 issued. Payment of ₱1,250.00 received via Maya for Grade 11 Science Laboratory safety kit and lab manual.',
+    timestamp: 'September 18, 2026, 11:45 AM',
+    read: false,
+    priority: 'NORMAL',
+    amount: 1250.0,
+    orNumber: 'OR-2026-09881',
+    transactionId: 'TRX-99815',
+    paymentMethod: 'Maya (Ref # 9928371029)',
+    cashierName: 'Maria Santos (Cashier/Registrar)',
+    feeBreakdown: [
+      { item: 'General Chemistry 1 Laboratory Manual', amount: 450.0 },
+      { item: 'STEM Lab Safety Coat & Goggles Kit', amount: 800.0 },
+    ],
+  },
+
+  // 7. REGISTRAR FOLLOW-UP REQUIREMENT (2x2 FORMAL ID PHOTO)
+  {
+    id: 'notif-req-id-photo',
+    type: 'REGISTRAR_FOLLOWUP',
+    category: 'Registrar Document Follow-up',
+    title: 'Follow-up Requirement: 2x2 Formal Identification Photo',
+    description:
+      'Please upload a digital 2x2 formal photo with white background and collar attire for issuance of your physical K-12 Student RFID card and LIS masterlist.',
+    timestamp: 'September 12, 2026, 09:10 AM',
+    read: true,
+    priority: 'NORMAL',
+    sender: 'School ID & LIS BOSY Section',
+    dueDate: 'September 30, 2026',
+    documentName: '2x2 Identification Photo (White Background)',
+    requiredAction: 'Upload digital JPG or PNG photo (under 2MB).',
+    isUnderUndertaking: false,
+    isResolved: false,
+  },
+
+  // 8. ACADEMIC & LIS REGISTRY UPDATE
+  {
+    id: 'notif-academic-section',
+    type: 'ACADEMIC_LIS',
+    category: 'Academic & Sectioning Allocation',
+    title: 'Section Allocation Confirmed: Grade 11 STEM - Newton',
+    description:
+      'Official class placement finalized. You have been assigned to Section STEM - Newton (Room 304, Science Wing Building B). Class Adviser: Engr. Ricardo Dalisay, M.S.',
+    timestamp: 'August 20, 2026, 08:00 AM',
+    read: true,
+    priority: 'NORMAL',
+    sender: 'SHS Sectioning Committee',
   },
 ];

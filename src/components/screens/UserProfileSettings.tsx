@@ -72,7 +72,7 @@ export const UserProfileSettings: React.FC<UserProfileSettingsProps> = ({
   };
 
   return (
-    <div className="p-8 max-w-7xl mx-auto space-y-6">
+    <div className="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto space-y-6">
       {saveSuccessToast && (
         <div className="bg-neutral-900 text-white px-4 py-3 rounded-lg shadow-lg flex items-center justify-between text-xs animate-in fade-in">
           <div className="flex items-center gap-2">
@@ -83,7 +83,7 @@ export const UserProfileSettings: React.FC<UserProfileSettingsProps> = ({
         </div>
       )}
 
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-8 items-start">
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 lg:gap-8 items-start">
         {/* Left Subnav Tabs and Role Switcher Card */}
         <div className="space-y-4">
           {/* Active Role Card */}

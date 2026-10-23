@@ -17,6 +17,8 @@ import {
   UserCheck,
   ExternalLink,
   Info,
+  Receipt,
+  CalendarDays,
 } from 'lucide-react';
 import { Student, ScreenId } from '../../types';
 
@@ -93,7 +95,7 @@ Barcode: DEPED-RO7-ROADMAP-${Date.now().toString(36).toUpperCase()}
   };
 
   return (
-    <div className="p-6 sm:p-8 max-w-7xl mx-auto space-y-6">
+    <div className="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto space-y-6">
       {/* Toast Alert */}
       {toastMessage && (
         <div className="fixed bottom-6 right-6 z-50 bg-neutral-900 text-white text-xs font-semibold px-4 py-3 rounded-lg shadow-xl border border-neutral-800 flex items-center gap-2.5 animate-in slide-in-from-bottom-2">
@@ -177,6 +179,84 @@ Barcode: DEPED-RO7-ROADMAP-${Date.now().toString(36).toUpperCase()}
             Credentials submission deadline: October 31, 2026
           </span>
         </div>
+      </div>
+
+      {/* Quick Notifications Banner: Successful Transactions & Registrar Follow-up */}
+      <div
+        id="applicant-notif-banner"
+        className="bg-white border border-slate-200 rounded-xl p-4 sm:p-5 shadow-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4"
+      >
+        <div className="flex items-start sm:items-center gap-3.5">
+          <div className="w-10 h-10 rounded-xl bg-neutral-900 text-white flex items-center justify-center shrink-0">
+            <Bell className="w-5 h-5" />
+          </div>
+          <div>
+            <div className="flex flex-wrap items-center gap-2">
+              <h4 className="text-sm font-bold text-neutral-900">
+                Notification Center: 3 Transactions Recorded • 1 Registrar Follow-up Active
+              </h4>
+              <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-900 border border-amber-300">
+                Action Required
+              </span>
+            </div>
+            <p className="text-xs text-neutral-500 mt-0.5 flex flex-wrap items-center gap-x-3 gap-y-1">
+              <span className="text-emerald-800 font-medium">✓ Downpayment ₱3,500.00 GCash Confirmed (OR-2026-08129)</span>
+              <span>•</span>
+              <span className="text-amber-800 font-semibold">⚠ Form 138 (SF9) Follow-up due Oct 31, 2026</span>
+            </p>
+          </div>
+        </div>
+
+        <button
+          onClick={() => onSelectScreen && onSelectScreen('student_notifications')}
+          className="px-4 py-2 bg-neutral-900 hover:bg-neutral-800 text-white rounded-lg text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 transition-colors shrink-0 shadow-2xs"
+        >
+          <span>View All Notifications</span>
+          <ArrowRight className="w-3.5 h-3.5" />
+        </button>
+      </div>
+
+      {/* Structured Class Schedule Banner (New Panel Preview) */}
+      <div
+        id="applicant-schedule-glance"
+        className="bg-white border border-slate-200 rounded-xl p-5 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-5"
+      >
+        <div className="flex items-start md:items-center gap-4">
+          <div className="w-11 h-11 rounded-xl bg-neutral-900 text-white flex items-center justify-center shrink-0 shadow-xs">
+            <CalendarDays className="w-5 h-5" />
+          </div>
+          <div className="space-y-1">
+            <div className="flex flex-wrap items-center gap-2">
+              <h4 className="text-sm font-bold text-neutral-900">
+                Official Class Schedule & Weekly Timetable (SY 2026-2027)
+              </h4>
+              <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-blue-100 text-blue-900 border border-blue-200">
+                1st Semester Active
+              </span>
+              <span className="text-xs text-neutral-400">·</span>
+              <span className="text-xs text-neutral-500 font-medium">
+                31 Hours / Week · 8 Subjects Enrolled
+              </span>
+            </div>
+            <p className="text-xs text-neutral-500 flex flex-wrap items-center gap-x-3 gap-y-1">
+              <span>Homeroom: <strong className="text-neutral-800">Room 304 (Science Wing B)</strong></span>
+              <span>•</span>
+              <span>Next Class: <strong className="text-neutral-800 font-mono">07:30 AM MATH-111 (General Mathematics)</strong></span>
+              <span>•</span>
+              <span>Adviser: <strong className="text-neutral-800">Engr. Ricardo Dalisay</strong></span>
+            </p>
+          </div>
+        </div>
+
+        <button
+          id="btn-goto-schedule-panel"
+          onClick={() => onSelectScreen && onSelectScreen('student_schedule')}
+          className="px-4 py-2.5 bg-neutral-900 hover:bg-neutral-800 text-white rounded-lg text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-2 transition-colors shrink-0 shadow-xs"
+        >
+          <CalendarDays className="w-3.5 h-3.5" />
+          <span>Open Full Schedule</span>
+          <ArrowRight className="w-3.5 h-3.5" />
+        </button>
       </div>
 
       {/* TWO PRIMARY INTERACTIVE PORTAL HUBS (Roadmap & Upload Form) */}
@@ -289,23 +369,34 @@ Barcode: DEPED-RO7-ROADMAP-${Date.now().toString(36).toUpperCase()}
       {/* Tertiary Info Cards: Section, Financial Voucher, DepEd BOSY */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {/* Card 1: Section & Class Schedule */}
-        <div className="bg-white border border-slate-200 rounded-xl p-5 shadow-xs space-y-3">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-bold uppercase tracking-wider text-neutral-400">
-              Class Section & Adviser
-            </span>
-            <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-100 text-neutral-700">
-              Active Roster
-            </span>
+        <div className="bg-white border border-slate-200 rounded-xl p-5 shadow-xs space-y-3 flex flex-col justify-between">
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-bold uppercase tracking-wider text-neutral-400">
+                Class Section & Adviser
+              </span>
+              <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-100 text-neutral-700">
+                Active Roster
+              </span>
+            </div>
+            <div>
+              <div className="text-base font-bold text-neutral-900">{section}</div>
+              <div className="text-xs text-neutral-500 mt-0.5">Room 304 • Science Wing Building B</div>
+            </div>
+            <div className="pt-2 border-t border-slate-100 text-xs text-neutral-600 flex items-center justify-between">
+              <span>Class Adviser:</span>
+              <strong className="text-neutral-800">Engr. Ricardo Dalisay, M.S.</strong>
+            </div>
           </div>
-          <div>
-            <div className="text-base font-bold text-neutral-900">{section}</div>
-            <div className="text-xs text-neutral-500 mt-0.5">Room 304 • Science Wing Building B</div>
-          </div>
-          <div className="pt-2 border-t border-slate-100 text-xs text-neutral-600 flex items-center justify-between">
-            <span>Class Adviser:</span>
-            <strong className="text-neutral-800">Engr. Ricardo Dalisay, M.S.</strong>
-          </div>
+
+          <button
+            onClick={() => onSelectScreen && onSelectScreen('student_schedule')}
+            className="w-full mt-1 py-2 px-3 rounded-lg border border-slate-200 hover:border-neutral-900 bg-slate-50 hover:bg-neutral-900 hover:text-white text-neutral-800 text-xs font-semibold flex items-center justify-center gap-1.5 transition-all shadow-2xs"
+          >
+            <CalendarDays className="w-3.5 h-3.5" />
+            <span>View Full Schedule</span>
+            <ArrowRight className="w-3 h-3" />
+          </button>
         </div>
 
         {/* Card 2: Tuition & Voucher Subsidy */}
